@@ -1,7 +1,7 @@
 # CabTerm
-Working on a paper about cabinet terminations in Western Europe.
+Paper on cabinet termination, more tba.
 
-Test GitHub integration for RStudio\\
+Tests for GitHub integration for RStudio\\
 
 + Neuer Test von Macbook.
 + Test Arco.
