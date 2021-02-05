@@ -5,4 +5,7 @@ Tests for GitHub integration for RStudio\\
 
 + Neuer Test von Macbook.
 + Test Arco.
-+ Test Arco 2 git
++ Test Arco 2 git\\
+
+Ideas?
++ 
