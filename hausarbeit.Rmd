@@ -1,0 +1,89 @@
+---
+title: 'Seminararbeit Koalitionsforschung WS 2020/2021 Dozent: Henning Bergmann'
+author: "Florian Wisniewski"
+date: "\today{}"
+output:
+  html_document: default
+geometry: margin=2cm
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r load libraries and dfs, include=FALSE, echo=FALSE}
+# libraries survival analysis
+library(survival)
+library(survminer)
+library(survMisc)
+library(simPH)
+library(flexsurv)
+
+# libraries general
+library(tidymodels)
+library(tidyverse)
+library(xtable)
+library(haven)
+library(broom)
+library(psych)
+library(Hmisc)
+library(expss)
+
+###########################################
+# import relevant dfs
+## import dta bergmann df
+dtaBerg <- read_dta(file = "/Users/flo/Documents/Uni/Uni Bamberg/WS 2020-21/S Koalitionsforschung/data/cabinets_2019_Bergmann.dta")
+str(dtaBerg)
+# View(dtaBerg)
+head(dtaBerg)
+
+## import xls ERDDA df
+erdda <- readxl::read_excel(path = "/Users/flo/Desktop/data/erdda/Data ERD-e_SA_SOE_JH_N-29_2014.xls")
+str(erdda)
+# View(erdda)
+head(erdda)
+```
+
+# Einleitung
+
+
+# Theorie
+
+
+# Empirie & Untersuchung
+
+
+# Fazit
+
+
+# Literaturverzeichnis
+
+
+# Eigenständigkeitserklärung
+
+Hiermit versichere ich, dass ich die vorliegend Hausarbeit im Seminar "Vergleichende Politikwissenschaft II: Methoden der Koalitionsforschung und ihre empirische Anwendung" unter der Leitung von Henning Bergmann im Wintersemester 2020/2021 ohne Zuhilfenahme unzulässiger Hilfsmittel angefertigt habe.
+Stellen, an denen auf die Arbeiten Dritter zurückgegriffen wurde, wurden als solche kenntlich gemacht.
+
+
+______________________
+Florian Wisniewski
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
