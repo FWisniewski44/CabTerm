@@ -21,21 +21,20 @@ library(effects)
 library(modeldata)
 library(randomForest)
 
-###########################################
-# import relevant dfs
-## import dta bergmann df
+########################################### import relevant dfs
+# import dta bergmann df
 dtaBerg <- as_tibble(read_dta(file = "/Users/flo/Documents/Uni/Uni Bamberg/WS 2020-21/S Koalitionsforschung/data/cabinets_2019_Bergmann.dta"))
 str(dtaBerg)
-# View(dtaBerg)
+### View(dtaBerg)
 head(dtaBerg)
 
-## import xls ERDDA df
+# import xls ERDDA df
 erdda <- as_tibble(readxl::read_excel(path = "/Users/flo/Desktop/data/erdda/Data ERD-e_SA_SOE_JH_N-29_2014.xls"))
 str(erdda)
-# View(erdda)
+### View(erdda)
 head(erdda)
 
-###########################################
+########################################### get a grip of available data
 attach(dtaBerg)
 
 # first manipulations
@@ -91,8 +90,33 @@ plot(kmRepl, conf.int = F, xlab = "Time of Survival (in days)", ylab = "% of Cab
      main = "Kaplan-Meier-Plot, Replacements")
 
 
-## test model
-summary(coxph(data = dtaBerg, firstSurv ~ major_cabinet))
+# test for full model - syntax reference
+summary(coxph(data = dtaBerg, firstSurv ~ minor_coalition))
+
+
+
+########################################### filter for minority cabinets
+# var for minority coalition cabinet - minor_coalition
+fre(minor_coalition)
+## in this case 0 == no; 1 == yes
+## there are 113 minority cabinets in the df
+
+
+# filter df for minor_coalition
+filterBerg <- filter(dtaBerg, minor_coalition == 1)
+View(filterBerg)
+
+# new Surv-item with filterBerg
+Surv(filterBerg$abs_dur, event = filterBerg$discr2019)
+
+
+# fit test model for this df
+summary(coxph(data = filterBerg, Surv(filterBerg$abs_dur, event = filterBerg$discr2019) ~ filterBerg$rl_range + filterBerg$bicameralism + filterBerg$strong_2chamber + filterBerg$gov_comp))
+
+
+
+
+
 
 
 
