@@ -189,6 +189,8 @@ subset(data = filterBerg, select = c(discr2019, abs_dur, one_party_minor, minor_
 head(dtaBerg)
 head(erdda)
 all_equal(dtaBerg, erdda)
+all_equal(erdda, BergErdda)
+
 ### this just shows different number of columns (158 vs 202) - is the rest the same df?
 
 # id vars are erdda$v001e and dtaBerg
@@ -197,12 +199,15 @@ help(merge)
 merge(dtaBerg, erdda, by.x = "country", by.y = "v001e")
 merge(dtaBerg, erdda, by = NULL)
 
-BergErdda <- merge(dtaBerg, erdda, by = NULL)
-fre(BergErdda$v405e)
+BergErdda <- merge(dtaBerg, erdda, by.x = "country", by.y = "v001e", all = T)
+fre(BergErdda$v106e)
+fre(erdda$v106e)
 
-### this does not really work (apparently...): ERDDA values are not taken to dtaBerg
+### this does not really work (apparently...): ERDDA values are not taken over to BergErdda
+#### correction: works - had to specify all = T, so that merge() can create NAs when needed
 
-
+fre(BergErdda$v407e)
+fre(erdda$v407e)
 
 
 
