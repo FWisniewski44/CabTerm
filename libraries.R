@@ -111,7 +111,7 @@ fre(post_election_cabinet)
 ## at the end of respective national legislative periods
 ## codes as 1 == yes; 0 == no
 
-# filter df for minority coalitions (one_party_minor | minor_coalition)
+# filter df for minority coalitions (one_party_minor | minor_coalition), post election cab
 filterBerg <- filter(dtaBerg, post_election_cabinet == 1 & minor_coalition == 1 | one_party_minor == 1)
 View(filterBerg)
 save(filterBerg, file = "filterBergmann.RData")
@@ -135,7 +135,47 @@ ggcoxzph(cox.zph(testModel))
 ## graphically: Schoenfeld test - there must not be a pattern of shifting values at any given point in time!
 
 
-###########################################  vars to include?
+###########################################  vars to include? - acc. to Saalfeld 08
+
+# STRUCTURE
+
+## majority cabinet (NOT NEEDED)
+## cabinet seat share (erdda: v318e)
+## number of cabinet parties (dtaBerg: num_cabparties)
+## minimal winning status (NOT NEEDED)
+## party with max. bargaining power is in cabinet (erdda: v322e or bpmaxcab)
+## coalition cabinet (erdda: v329e or govtype) ????
+## maximum possible cabinet duration (dtaBerg: max_dur; erdda: v305e)
+## effective number of parliamentary parties (dtaBerg: eff_numb_parties, erdda: v309e)
+
+#######################
+
+# PREFERENCES
+
+## cabinet preference range (dtaBerg: polarization_bpw, rl_polar, many more; erdda: v410e - this is exactly the pref range of the cab)
+### there are several preference ranges in Bergmann et al., maybe this could be interesting?
+### otherwise: DO NOT INCLUDE, bc. pref range of minority cabs is not that important, bc. they always need external support
+
+## minimal connected cabinet (NOT NEEDED)
+## median party (1st dimension) in cabinet (erdda: v411e)
+## conservative cabinet (dtaBerg: gov_comp for gov composition; erdda: v415e)
+## socialist cabinet (dtaBerg: gov_comp, erdda: v416e)
+## parliamentary preference range (dtaBerg: rl_range, v406e)
+## polarization (bp weighted) (dtaBerg: polarization_bpw, erdda: v407e)
+## effective number of issue dimensions
+## extremist party seat share
+
+#######################
+
+# INSTITUTIONS
+
+## 
+
+
+
+
+
+
 # dependent var and miscellaneous/other
 
 ## discr2019 --- discretionary cabinet terminations (2019)
@@ -165,7 +205,7 @@ ggcoxzph(cox.zph(testModel))
 
 ## polarization_bpw --- polarization (bp weighted)
 ### polarization of cabinets, value as calculated in ERDDA 2014, hence also only data for countries from ERDDA
-### rather include this for cabinet preference range?
+### rather include this for cabinet preference range? (in ERDDA: v407e - combined DF has this too)
 
 ## 
 
@@ -190,24 +230,50 @@ head(dtaBerg)
 head(erdda)
 all_equal(dtaBerg, erdda)
 all_equal(erdda, BergErdda)
+all_equal(erdda$v002e, dtaBerg$cab_code)
 
 ### this just shows different number of columns (158 vs 202) - is the rest the same df?
 
 # id vars are erdda$v001e and dtaBerg
-# try merging by "country"
-help(merge)
-merge(dtaBerg, erdda, by.x = "country", by.y = "v001e")
-merge(dtaBerg, erdda, by = NULL)
+# try merging by "country"?
+# help(merge)
+# merge(dtaBerg, erdda, by.x = "country", by.y = "v001e")
+# merge(dtaBerg, erdda, by = NULL)
+# 
+# BergErdda <- merge(dtaBerg, erdda, by.x = "country", by.y = "v001e", all = T)
+# fre(BergErdda$v106e)
+# fre(erdda$v106e)
 
-BergErdda <- merge(dtaBerg, erdda, by.x = "country", by.y = "v001e", all = T)
-fre(BergErdda$v106e)
-fre(erdda$v106e)
+#### 1/2 works at least a bit - had to specify all = T, so that merge() can create NAs when needed
 
-### this does not really work (apparently...): ERDDA values are not taken over to BergErdda
-#### correction: works - had to specify all = T, so that merge() can create NAs when needed
+fre(BergErdda$discr2019)
+# this shows that there are 640 NAs in the discretionary cabterm var - those come from the erdda df.
+# that means, that the merging just glues the two dfs together, makes the vars usable in one df...
+# ... but it is not what i wanted, as is wanted it to *really* merge into one df via the country var.
+
+# try merging by "cabinet code"?
+fre(dtaBerg$cab_code)
+fre(erdda$v002e)
+erdda$cab_code <- erdda$v002e
+
+fre(erdda$cab_code)
+
+##########
+
+# join function
+BergErdda <- left_join(dtaBerg, erdda, by = "cab_code")
+
+## some tests to see if this works
+compare(BergErdda$discr2019, dtaBerg$discr2019)
+### output is TRUE
+
+all_equal(BergErdda, dtaBerg)
+### says that the difference is just because of the number of columns, i. e. the added new erdda-vars
 
 fre(BergErdda$v407e)
 fre(erdda$v407e)
+
+describe(BergErdda$v407e)
 
 
 
