@@ -1,6 +1,8 @@
 # CabTerm
+____________________________
 
 ## Exposé (Versionsverlauf; verändert sich ggf. im Arbeitsprozess)
+____________________________
 
 In der im Seminar "Vergleichende Politikwissenschaft II: Modelle der Koalitionsforschung und ihre empirische Anwendung" anzufertigenden Hausarbeit soll sich mit der Thematik der Stabilität von Minderheitsregierungen auseinandergesetzt werden. Bezüglich des Forschungsdesigns soll sich grob am Text von Thomas SAALFELD *Institutions, Chance, and Choices. The Dynamics of Cabinet Survival* (2008) orientiert werden.
 
@@ -9,10 +11,18 @@ Eine (vorläufige) konkrete Frage könnte also wie folgt lauten:
 > ***Welche Einflussfaktoren beeinflussen die Stabilität von Minderheitsregierungen positiv bzw. negativ?***
 
 ## Aufbau, Design, Methodik
+____________________________
 
 Es könnten konkret Hypothesen für einzelne Variablen herausgearbeitet werden (aus den Bereichen wie bei Saalfeld, also strukturell, institutionell, preference range, externe Schocks, aber auch was die Transaktionskosten angeht usw.), wie diese die *Überlebenschance von Minderheitsregierungen* positiv oder negativ beeinflussen könnten, die dann ereignisanalytisch anhand eines Cox-Proportional-Hazards-Modells überprüft werden sollen - das würde dann eine Art exploratives Design darstellen, am Ende steht dann ein best fit-Modell.
 
 ## Daten
+____________________________
+
++ Andersson, Staffan; Bergman, Torbjörn & Ersson, Svante (2014). "The European Representative Democracy Data Archive, Release 3". Main sponsor: Riksbankens Jubileumsfond (In2007-0149:1-E). [www.erdda.se](https://erdda.org/erd/data-archive/).
+
++ Bergmann, Henning (2019): "Cabinets 2019 Dataset".
+
++ Strøm, Kaare; Bergmann, Torbjörn & Müller, Wolfgang (2008): "Comparative Parliamentary Democracy Data Archive". [CPD on www.erdda.se](https://erdda.org/cpd/)
 
 Daten sind sowohl vom Dozenten gestellt worden als auch über die Webseite des ERDDA abrufbar. Beide Datensätze wurden auf die Verfügbarkeit der erforderlichen Variablen überprüft.
 
