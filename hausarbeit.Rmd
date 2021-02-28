@@ -61,12 +61,16 @@ head(erdda)
 
 # Eigenständigkeitserklärung
 
-Hiermit versichere ich, dass ich die vorliegend Hausarbeit im Seminar "Vergleichende Politikwissenschaft II: Methoden der Koalitionsforschung und ihre empirische Anwendung" unter der Leitung von Henning Bergmann im Wintersemester 2020/2021 ohne Zuhilfenahme unzulässiger Hilfsmittel angefertigt habe.
-Stellen, an denen auf die Arbeiten Dritter zurückgegriffen wurde, wurden als solche kenntlich gemacht.
+
+Ich erkläre hiermit, dass ich die Hausarbeit mit dem Titel "Explorative Datenanalyse: Faktoren der (In-)Stabilität von Minderheitsregierungen in Europa" im Rahmen der Lehrveranstaltung _"Vergleichende Politikwissenschaft II: Modelle der Koalitionsforschung und ihre empirische Anwendung"_ im Wintersemester 2020/2021 selbständig angefertigt, keine anderen Hilfsmittel als die im Quellen- und Literaturverzeichnis genannten benutzt und alle aus den Quellen und der Literatur wörtlich oder sinngemäß übernommenen Stellen als solche gekennzeichnet habe.
 
 
-______________________
-Florian Wisniewski
+
+Bamberg, den XX.YY.ZZZZ
+
+
+
+Unterschrift Florian Wisniewski
 
 
 

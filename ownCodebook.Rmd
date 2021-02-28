@@ -1,0 +1,122 @@
+---
+title: "own codebook"
+author: "Florian Wisniewski"
+output: html_notebook
+---
+
+<!-- This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code.  -->
+
+<!-- Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Cmd+Shift+Enter*.  -->
+
+<!-- Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Cmd+Option+I*. -->
+
+<!-- When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Cmd+Shift+K* to preview the HTML file).  -->
+
+<!-- The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed. -->
+
+My own codebook: vars from Saalfeld (2008), as they were coded in the data frames (Bergmann et al. and ERDDA). For future reference.
+
+# ***STRUCTURE***
+_______________________________
+
++ majority cabinet (NOT NEEDED)
++ cabinet seat share (*erdda*: v318e)
++ number of cabinet parties (*dtaBerg*: num_cabparties)
++ minimal winning status (NOT NEEDED)
++ party with max. bargaining power is in cabinet (*erdda*: v322e or bpmaxcab)
++ coalition cabinet (*erdda*: v329e, recode to: govtype) ????
++ maximum possible cabinet duration (*dtaBerg*: max_dur; *erdda*: v305e)
++ effective number of parliamentary parties (*dtaBerg*: eff_numb_parties, *erdda*: v309e)
+
+#######################
+
+# ***PREFERENCES***
+_______________________________
+
++ cabinet preference range (*dtaBerg*: polarization_bpw, rl_polar, many more; *erdda*: v410e - this is exactly the pref range of the cab)
+  + there are *several preference ranges in Bergmann et al.*, maybe this could be interesting?
+  + otherwise: DO NOT INCLUDE, bc. pref range of minority cabs is not that important, bc. they always need external support
+
++ minimal connected cabinet (*NOT NEEDED*)
++ median party (1st dimension) in cabinet (*erdda*: v411e)
++ conservative cabinet (*dtaBerg*: gov_comp for gov composition; *erdda*: v415e)
++ socialist cabinet (*dtaBerg*: gov_comp, *erdda*: v416e)
++ parliamentary preference range (*dtaBerg*: rl_range, *erdda*: v406e)
++ polarization (bp weighted) (*dtaBerg*: polarization_bpw, *erdda*: v407e)
++ effective number of issue dimensions (*?????*)
++ extremist party seat share (not explicitly found, maybe via *dtaBerg*: antisys_seat)
+
+#######################
+
+# ***INSTITUTIONS***
+_______________________________
+
++ length of CIEP (????)
++ positive parliamentarism (dtaBerg: positive_parl; erdda: v505e, recode to invest)
++ *opposition influence (???? --> which data set was used in saalfeld 08? apparently strøm, bergman and müller had their own, which was used by saalfeld, but where to find this? --> via erdda website: proble)*
++ cabinet rule: unanimity (*erdda*: v509e, recode to: cabunan)
++ PM powers (1-7 scale) (*erdda*:v513e, recode to: pmpow)
++ PM dissolution powers (*dtaBerg newer via Goplerud/Schleiter-index 2016*: pm_diss_pow)
++ bicameralism (*dtaBerg*: bicameralism; *erdda*: v504e)
++ semi-presidentialism (*dtaBerg*: semi_presidentialism; *erdda*: v518e, recode to: semip)
+
+#######################
+
+# ***BARGAINING*** (especially here, the other df by Strøm, Bergmann, Müller would be needed - but it is from 2008 until max. 2012)
+_______________________________
+
++ existence of coalition agreement (*????*)
++ comprehensive policy agreement (*????*)
++ coalition discipline in legislation (*????*)
++ same PM and cabinet (*dtaBerg*: same_pm)
++ cabinet bargaining duration (*dtaBerg*: cab_barg_duration; erdda: v600e)
++ coalition cabinet (erdda: v329e, recode to: govtype)
++ majority cabinet (*NOT NEEDED*)
++ max. possible cabinet duration (*dtaBerg*: max_dur; *erdda*: v305e)
+
+# ***CRITICAL EVENTS***
+_______________________________
+
++ electoral volatility (previous election) (*erdda*: v700e, v701e)
++ inflation (time varying) (*erdda*: beginning == v702e; end == v706e)
+  + may need some calculation; e. g. the difference of the two vars
++ unemployment (time varying) (*erdda*: beginning == v703e; end == v705e)
+  + can be seen together with inflation as *proxies for economic performance* of cabs
+  + just like inflation values, some further calculations could be of use
++ interaction effects??? (in Saalfeld's study, there were interactions between soc. governments##unemployment and cons. governments##inflation)
+
+
+# ***DEPENDENT VAR AND MISC***
+_______________________________
+
++ *discr2019* --- discretionary cabinet terminations (2019)
+  + code: 1 == discretionary ; 0 == others
++ for event history analysis/data over time: abs_dur --- absolute duration (days)
++ filtered vars are one_party_minor and minor_coalition (filter for minority cabinets only) and post_election_cabinet (cabinets after elections at the end of legislative periods)
+
+
+F. W.
+
+End of Document.
+<!-- # independent vars (based on Saalfeld 2008) -->
+
+<!-- ## eff_numb_parties --- effective number of parties -->
+<!-- ### based on Laakso/Taagepera index (1979) -->
+
+<!-- ## cab_barg_duration --- cabinet bargaining duration -->
+<!-- ### measured in days -->
+
+<!-- ## pm_diss_pow --- Prime Minister dissolution powers -->
+<!-- ### index from 0-10 based on Goplerud/Schleiter 2016 -->
+<!-- ### additionally: look up what Saalfeld was using in 2008 -->
+
+<!-- ## rl-range --- overall parliamentary RILE range -->
+<!-- ### range = maximum - minimum; higher values = more RILE polarization -->
+<!-- ### this is for the parliament as a whole - is another polarization var needed just for the cab? -->
+<!-- #### possibility to merge *erdda* variable for this into *dtaBerg*? -->
+
+<!-- ## polarization_bpw --- polarization (bp weighted) -->
+<!-- ### polarization of cabinets, value as calculated in *erdda* 2014, hence also only data for countries from *erdda* -->
+<!-- ### rather include this for cabinet preference range? (in *erdda*: v407e - combined DF has this too) -->
+
+<!-- ##  -->

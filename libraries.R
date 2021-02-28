@@ -162,15 +162,21 @@ ggcoxzph(cox.zph(testModel))
 ## socialist cabinet (dtaBerg: gov_comp, erdda: v416e)
 ## parliamentary preference range (dtaBerg: rl_range, v406e)
 ## polarization (bp weighted) (dtaBerg: polarization_bpw, erdda: v407e)
-## effective number of issue dimensions
-## extremist party seat share
+## effective number of issue dimensions (?????)
+## extremist party seat share (with dtaBerg: antisys_seat)
 
 #######################
 
 # INSTITUTIONS
 
-## 
-
+## length of CIEP ()
+## positive parliamentarism ()
+## opposition influence ()
+## cabinet rule: unanimity ()
+## PM powers (1-7 scale) ()
+## PM dissolution powers ()
+## bicameralism (dtaBerg: bicameralism; erdda: v504e)
+## semi-presidentialism (dtaBerg: semi_presidentialism; erdda: v518e, recoded: semip)
 
 
 
@@ -269,9 +275,15 @@ compare(BergErdda$discr2019, dtaBerg$discr2019)
 
 all_equal(BergErdda, dtaBerg)
 ### says that the difference is just because of the number of columns, i. e. the added new erdda-vars
+save(BergErdda, file = "BergErdda_leftJoin.RData")
+
 
 fre(BergErdda$v407e)
 fre(erdda$v407e)
+
+fre(erdda$v003e)
+
+fre(erdda$v700e)
 
 describe(BergErdda$v407e)
 
