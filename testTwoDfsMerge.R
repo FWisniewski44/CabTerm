@@ -65,12 +65,15 @@ fre(berg1PartyMin$discr2019)
 BerJoi <- full_join(berg1PartyMin, bergCabMin, by = NULL)
 fre(BerJoi$discr2019)
 
+save(BerJoi, file = "BerJoi.RData")
+
 ##########
 # well, it seems to work now...
 # see:
 ## yes == 1 (33 obs); no == 0 (82 obs)
 ## just like i wanted it to work: adds the numbers up
 
+##### EOD
 
 
 
