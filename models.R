@@ -190,8 +190,63 @@ plotLowerTri <- ggplot(data = meltLower, aes(Var2, Var1, fill = value))+
                                    size = 12, hjust = 1))+
   coord_fixed()
 
+############################################### model STRUCTURE
+attach(BerJoi)
+detach(BerJoi)
+############################################### 
 
+# subset STRUCTURE
 
+subSTRUCT <- subset(BerJoi, select = c("discr2019", "abs_dur", "num_cabparties", "max_dur", "eff_numb_parties"))
 
+##########
 
+survSTRUCT <- Surv(subSTRUCT$abs_dur, event = subSTRUCT$discr2019)
+
+summary(coxph(data = subSTRUCT, survSTRUCT ~ . - discr2019 - abs_dur))
+cox.zph(coxph(data = subSTRUCT, survSTRUCT ~ . - discr2019 - abs_dur))
+# sig: effective number of parliament. parties significant - the more parties, the higher the risk of disc2019
+
+############################################### model PREFERENCES
+
+subPREF <- subset(BerJoi, select = c("discr2019", "abs_dur", "rl_polar", "right_seat",
+                                     "comm_seat", "rl_range", "polarization_bpw", "antisys_seat"))
+
+##########
+
+survPREF <- Surv(subPREF$abs_dur, event = subPREF$discr2019)
+
+summary(coxph(data = subPREF, survPREF ~ . - discr2019 - abs_dur))
+cox.zph(coxph(data = subPREF, survPREF ~ . - discr2019 - abs_dur))
+# sig: left party seat share: the higher the amount of left seats, the higher the risk
+
+############################################### model INSTITUTIONS
+
+subINST <- subset(BerJoi, select = c("discr2019", "abs_dur", "positive_parl", "pm_diss_pow",
+                                     "bicameralism", "semi_presidentialism")) 
+
+##########
+
+survINST <- Surv(subINST$abs_dur, event = subINST$discr2019)
+
+summary(coxph(data = subINST, survINST ~ . - discr2019 - abs_dur))
+cox.zph(coxph(data = subINST, survINST ~ . - discr2019 - abs_dur))
+# sig: PM dissolution power: the higher the PM diss pow, the lower the risk
+
+############################################### model BARGAINING
+
+subBARG <- subset(BerJoi, select = c("discr2019", "abs_dur", "same_pm", "cab_barg_duration", "max_dur"))
+
+##########
+
+survBARG <- Surv(subBARG$abs_dur, event = subBARG$discr2019)
+
+summary(coxph(data = subBARG, survBARG ~ . - discr2019 - abs_dur))
+cox.zph(coxph(data = subBARG, survBARG ~ . - discr2019 - abs_dur))
+# sig: borderline significant: same PM - when same PM in cabinet, the lower the risk
+# sig: cabinet bargaining duration: the longer it takes, the higher the risk of failure
+
+############################################### model CRITICAL EVENTS
+
+# subCE <- 
 
