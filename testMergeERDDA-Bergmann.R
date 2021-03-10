@@ -49,7 +49,7 @@ erdda$cab_code <- erdda$v002e
 combo <- inner_join(erdda, berg, by = "cab_code")
 # comboMerge <- merge(erdda, berg, by = "cab_code")
 # i double-checked this in stata and it worked, so inner_join == merge 1:1 in stata
-save(combo, file = "combo.RData")
+# save(combo, file = "combo.RData")
 
 # see which cases are dropped
 # antiCombo <- anti_join(erdda, berg, by = "cab_code")
