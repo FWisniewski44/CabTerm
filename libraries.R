@@ -327,14 +327,37 @@ save(filterBerg, file = "filterBergmann.RData")
 ## the df is filtered for post election cabinets == T AND minority coalition governments OR
 ## one party minority governments == T
 
+################################## trial and error: mutating vars for inflation etc
+
+help(mutate)
 
 
+BergmannERDDA.f <- BergmannERDDA.f %>% rename("inflation_begin" = "v702e",
+                                              "inflation_end" = "v706e")
 
+BergmannERDDA.f <- BergmannERDDA.f %>% rename("unemploy_begin" = "v703e",
+                                              "unemploy_end" = "v705e")
 
+BergmannERDDA.f_test <- BergmannERDDA.f
 
+fre(BergmannERDDA.f_test$inflation_begin)
+fre(BergmannERDDA.f_test$inflation_end)
 
+fre(BergmannERDDA.f_test$unemploy_begin)
 
+BergmannERDDA.f_test <- BergmannERDDA.f_test %>%
+  mutate(inflation_perCent = (inflation_end / lag(inflation_begin)-1)*100)
 
+BergmannERDDA.f_test <- BergmannERDDA.f_test %>%
+  mutate(inflation_Abs = (inflation_end - inflation_begin))
 
+fre(BergmannERDDA.f_test$inflation_perCent)
+fre(BergmannERDDA.f_test$inflation_Abs)
 
+fre(BergmannERDDA$v702e)
+
+BergmannERDDA.f_test <- BergmannERDDA.f_test %>%
+  mutate(unemploy_perCent = (unemploy_))
+
+fre(BergmannERDDA.f_test$unemploy_perCent)
 

@@ -10,6 +10,7 @@ library(My.stepwise)
 library(tidymodels)
 library(tidyverse)
 library(MASS)
+library(corrplot)
 library(lubridate)
 library(Amelia)
 library(xtable)
@@ -28,6 +29,7 @@ library(psych)
 library(desc)
 library(PerformanceAnalytics)
 library(reshape2)
+library(d3heatmap)
 
 ########################################### models test with safely merged df
 
@@ -51,22 +53,14 @@ combo %>% filter(v329e == 1)
 BergmannERDDA.f <- BergmannERDDA %>% filter(minor_coalition == 1 | one_party_minor == 1)
 combo %>% filter(minor_coalition == 1 | one_party_minor == 1)
 
-###########################################
+# filter: non partisan govs // edit: value is 0 for all 207 obs.
+fre(BergmannERDDA.f$non_partisan_cabinet)
 
-# corr matrix: upper and lower triangular parts of matrices
-## function lower tri
-get_lower_tri <- function(cormat){
-  cormat[upper.tri(cormat)] <- NA
-  return(cormat)
-}
 
-## function upper tri
-get_upper_tri <- function(cormat){
-  cormat[lower.tri(cormat)] <- NA
-  return(cormat)
-}
+
 
 ########################################### recoding needed vars from erdda-part
+
 
 ################ STRUCTURE ################
 # v318e = cabinet seat share (unit = %points)
@@ -91,14 +85,19 @@ sbStructure <- subset(BergmannERDDA.f, select = c("discr2019", "abs_dur", "cab_s
                                                   "num_cabparties", "max_bargpow_cab",
                                                   "coal_cab", "max_poss_dur", "effec_parties_parl"))
 
+corStructure <- round(cor(sbStructure), 2)
+
+corrplot(corStructure, type = "upper", method = "number", order = "hclust")
+# exclude coal_cab (correlates: .84 with num_cabparties)
 
 # surv object
-Surv(time = sbStructure$abs_dur, event = sbStructure$discr2019)
+Surv(time = sbStructure$abs_dur, event = sbStructure$discr2019, type = "right")
 
-# model fit for part I: STRUCTURE 
-coxPH.STR <- coxph(data = sbStructure, Surv(time = sbStructure$abs_dur, event = sbStructure$discr2019) ~ . - abs_dur - discr2019)
+# model fit for part I: STRUCTURE (with coal_cab kicked due to high corr values)
+coxPH.STR <- coxph(data = sbStructure, Surv(time = sbStructure$abs_dur, event = sbStructure$discr2019 type = "right") ~ . - abs_dur - discr2019 - coal_cab)
 summary(coxPH.STR)
 cox.zph(coxPH.STR)
+car::vif(coxPH.STR)
 
 ################ PREFERENCES ##############
 # v410e = cabinet preference range (unit = manifesto points)
@@ -126,15 +125,21 @@ sbPreferences <- subset(BergmannERDDA.f, select = c("discr2019", "abs_dur", "pre
                                                   "median_party_cab", "cons_cab",
                                                   "soc_cab", "parl_pref_range", "polar_barg_power"))
 
+corPreferences <- round(cor(sbPreferences), 2)
+# corPreferences <- na.omit(corPreferences)
+
+corrplot(corPreferences, type = "upper", method = "number")
+d3heatmap::d3heatmap(corPreferences, Rowv = FALSE, Colv=FALSE)
+# max correlation is -.45
 
 # surv object
-Surv(time = sbPreferences$abs_dur, event = sbPreferences$discr2019)
+Surv(time = sbPreferences$abs_dur, event = sbPreferences$discr2019, type = "right")
 
-# model fit for part I: STRUCTURE 
-coxPH.PREF <- coxph(data = sbPreferences, Surv(time = sbPreferences$abs_dur, event = sbPreferences$discr2019) ~ . - abs_dur - discr2019)
+# model fit for part II: PREFERENCES 
+coxPH.PREF <- coxph(data = sbPreferences, Surv(time = sbPreferences$abs_dur, event = sbPreferences$discr2019, type = "right") ~ . - abs_dur - discr2019)
 summary(coxPH.PREF)
 cox.zph(coxPH.PREF)
-
+car::vif(coxPH.PREF)
 
 
 ################ INSTITUTIONS #############
@@ -160,14 +165,21 @@ sbInstit <- subset(BergmannERDDA.f, select = c("discr2019", "abs_dur", "invest",
                                                "cabunan", "pm_pow",
                                                "pm_diss_pow", "erdda_bicam", "erdda_semip"))
 
+corInstit <- round(cor(sbInstit), 2)
+
+corrplot(corInstit, type = "upper", method = "number")
+d3heatmap::d3heatmap(corInstit, Rowv = FALSE, Colv=FALSE)
+
 
 # surv object
-Surv(time = sbInstit$abs_dur, event = sbInstit$discr2019)
+Surv(time = sbInstit$abs_dur, event = sbInstit$discr2019, type = "right")
 
-# model fit for part I: STRUCTURE 
-coxPH.INST <- coxph(data = sbInstit, Surv(time = sbInstit$abs_dur, event = sbInstit$discr2019) ~ . - abs_dur - discr2019)
+# model fit for part III: INSTITUTIONS 
+coxPH.INST <- coxph(data = sbInstit, Surv(time = sbInstit$abs_dur, event = sbInstit$discr2019, type = "right") ~ . 
+                    - abs_dur - discr2019 - pm_pow - pm_diss_pow)
 summary(coxPH.INST)
 cox.zph(coxPH.INST)
+car::vif(coxPH.INST)
 
 ################ BARGAINING ###############
   ## same_pm
@@ -181,16 +193,22 @@ BergmannERDDA.f <- BergmannERDDA.f %>% rename("erdda_barg_dur" = "v600e",
 
 
 sbBarg <- subset(BergmannERDDA.f, select = c("discr2019", "abs_dur", "same_pm",
-                                               "erdda_barg_dur", "max_poss_dur"))
+                                               "erdda_barg_dur", "max_poss_dur", "coal_cab"))
+
+corBarg <- round(cor(sbBarg), 2)
+
+corrplot(corBarg, type = "upper", method = "number")
+d3heatmap::d3heatmap(corBarg, Rowv = FALSE, Colv=FALSE)
 
 
 # surv object
-Surv(time = sbBarg$abs_dur, event = sbBarg$discr2019)
+Surv(time = sbBarg$abs_dur, event = sbBarg$discr2019, type = "right")
 
 # model fit for part I: STRUCTURE 
-coxPH.BARG <- coxph(data = sbBarg, Surv(time = sbBarg$abs_dur, event = sbBarg$discr2019) ~ . - abs_dur - discr2019)
+coxPH.BARG <- coxph(data = sbBarg, Surv(time = sbBarg$abs_dur, event = sbBarg$discr2019, type = "right") ~ . - abs_dur - discr2019)
 summary(coxPH.BARG)
 cox.zph(coxPH.BARG)
+car::vif(coxPH.BARG)
 
 ################ CRIT. EV. ################
 # i have to see if this will be included...
@@ -226,20 +244,102 @@ modFull <- coxph(data = sbAll, Surv(time = sbAll$abs_dur, event = sbAll$discr201
 stepAIC(modNull, scope = list(upper = modFull), direction = "both")
 
 # best fit as object with summary and test for ph assumption
-best.fit <- coxph(data = sbAll, Surv(time = sbAll$abs_dur, event = sbAll$discr2019) ~ soc_cab + cons_cab + effec_parties_parl + cabunan + erdda_bicam + max_poss_dur + cab_seat_share + same_pm + pm_pow + erdda_semip)
+best.fit <- coxph(data = sbAll, Surv(time = sbAll$abs_dur, event = sbAll$discr2019) ~ soc_cab + 
+                    cons_cab + effec_parties_parl + cabunan + erdda_bicam + max_poss_dur + 
+                    cab_seat_share + same_pm + pm_pow + erdda_semip)
 summary(best.fit)
 cox.zph(best.fit)
+car::vif(best.fit)
 
 
 ################ SAVE DF ##################
 save(BergmannERDDA.f, file = "BergmannERDDA.f.RData")
+save(sbAll, file = "sbAll.RData")
 
-########################################### works, begin building models
+########################################### correlation tests! (do this for each level individually)
+
+attach(sbAll)
+detach(sbAll)
+
+# basic corr matrix for sbAll
+cormat <- round(cor(sbAll), 2)
+meltedCormat <- reshape2::melt(cormat)
+ggplot(data = meltedCormat, aes(x = Var1, y = Var2, fill = value)) + geom_raster()
+
+###########
+
+# corr matrix: upper and lower triangular parts of matrices
+## function lower tri
+get_lower_tri <- function(cormat){
+  cormat[upper.tri(cormat)] <- NA
+  return(cormat)
+}
+
+## function upper tri
+get_upper_tri <- function(cormat){
+  cormat[lower.tri(cormat)] <- NA
+  return(cormat)
+}
+
+# ###########
+# 
+# ## use functions
+# lowerTri <- get_lower_tri(cormat)
+# upperTri <- get_upper_tri(cormat)
+# 
+# # melting triangular parts
+# meltUpper <- reshape2::melt(upperTri, na.rm = T)
+# meltLower <- reshape2::melt(lowerTri, na.rm = T)
+
+# # better heatmap [see this article](http://www.sthda.com/english/wiki/ggplot2-quick-correlation-matrix-heatmap-r-software-and-data-visualization)
+# plotUpperTri <- ggplot(data = meltUpper, aes(Var2, Var1, fill = value)) + 
+#   geom_raster(color = "white")+
+#   scale_fill_gradient2(low = "blue", high = "red", mid = "white", 
+#                        midpoint = 0, limit = c(-1,1), space = "Lab", 
+#                        name="Pearson\nCorrelation") +
+#   theme_minimal()+ 
+#   theme(axis.text.x = element_text(angle = 45, vjust = 1, 
+#                                    size = 12, hjust = 1))+
+#   coord_fixed()
+# 
+# plotUpperTri + geom_text(aes(Var2, Var1, label = value), color = "black", size = 2)
+# 
+# print(plotUpperTri)
+
+# this may be the best heatmap for .Rmd
+corrplotAll <- corrplot::corrplot(cormat, type = "upper", method = "circle", order = "hclust")
+print(corrplotAll)
+
+# this is the best heatmap: interactive
+d3corrplotAll <- d3heatmap::d3heatmap(cormat, Rowv = F, Colv = F)
+print(d3corrplotAll)
+
+# results:
+## .87 corr: coal_cab X num_cabparties
+## .78 corr: pref_range X num_cabparties
 
 
-################ STRUCTURE ################
 
-
-
-
-
+# ## test corrs between num_cabparties X pref_range, also coal_cab X pref_range
+# ## also test invest X erdda_bicam
+# 
+# # kick out candidates
+# 
+# corr.test(sbAll$num_cabparties, sbAll$pref_range, method = "pearson")
+# # .78 --> maybe kick one var out
+# 
+# corr.test(sbAll$num_cabparties, sbAll$coal_cab, method = "pearson")
+# # .87 --> high correlation, kick one out
+# 
+# # further testing
+# 
+# corr.test(sbAll$coal_cab, sbAll$pref_range, method = "pearson")
+# # .68
+# 
+# corr.test(sbAll$invest, sbAll$erdda_bicam, method = "pearson")
+# 
+# corr.test(sbAll$num_cabparties, sbAll$coal_cab, method = "pearson")
+# 
+# # testing negative corrs
+# corr.test(sbAll$invest, sbAll$parl_pref_range, method = "pearson")
+# # -.51 - as this is the "darkest" blue spot in the heatmap, rest can safely be ignored

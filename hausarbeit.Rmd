@@ -1,10 +1,8 @@
 ---
-title: 'Seminararbeit Koalitionsforschung WS 2020/2021 Dozent: Henning Bergmann'
+title: "Faktoren der (In-)Stabilität von Minderheitsregierungen in Europa"
 author: "Florian Wisniewski"
-date: "\today{}"
-output:
-  html_document: default
-geometry: margin=2cm
+date: "3/10/2021"
+output: pdf_document
 ---
 
 ```{r setup, include=FALSE}
@@ -18,45 +16,128 @@ library(survminer)
 library(survMisc)
 library(simPH)
 library(flexsurv)
+library(My.stepwise)
 
 # libraries general
 library(tidymodels)
 library(tidyverse)
+library(MASS)
+library(corrplot)
+library(lubridate)
+library(Amelia)
 library(xtable)
 library(haven)
+library(foreign)
 library(broom)
 library(psych)
 library(Hmisc)
 library(expss)
+library(rockchalk)
+library(effects)
+library(modeldata)
+library(randomForest)
+library(compare)
+library(psych)
+library(desc)
+library(PerformanceAnalytics)
+library(reshape2)
+library(d3heatmap)
 
 ###########################################
-# import relevant dfs
-## import dta bergmann df
-dtaBerg <- read_dta(file = "/Users/flo/Documents/Uni/Uni Bamberg/WS 2020-21/S Koalitionsforschung/data/cabinets_2019_Bergmann.dta")
-str(dtaBerg)
-# View(dtaBerg)
-head(dtaBerg)
 
-## import xls ERDDA df
-erdda <- readxl::read_excel(path = "/Users/flo/Desktop/data/erdda/Data ERD-e_SA_SOE_JH_N-29_2014.xls")
-str(erdda)
-# View(erdda)
-head(erdda)
+# # import relevant dfs
+# ## import dta bergmann df
+# dtaBerg <- read_dta(file = "/Users/flo/Documents/Uni/Uni Bamberg/WS 2020-21/S Koalitionsforschung/data/cabinets_2019_Bergmann.dta")
+# str(dtaBerg)
+# # View(dtaBerg)
+# head(dtaBerg)
+# 
+# ## import xls ERDDA df
+# erdda <- readxl::read_excel(path = "/Users/flo/Desktop/data/erdda/Data ERD-e_SA_SOE_JH_N-29_2014.xls")
+# str(erdda)
+# # View(erdda)
+# head(erdda)
+
+###########################################
+
+# bergmann and erdda, joined df
+BergmannERDDA <- read_dta(file = "/Users/flo/Documents/GitHub/CabTerm/erdda2014-Bergmann2019_merged.dta")
+BergmannERDDA <- as_tibble(BergmannERDDA)
+
+# bergmann and erdda, filtered and renamed
+load(file = "BergmannERDDA.f.RData")
+
+# subset w. all relevant vars
+load(file = "sbAll.RData")
+
 ```
 
-# Einleitung
+# 1. Einleitung
+
+Minderheitsregierungen stellen in Europa gut ein Drittel der Regierungskabinette dar. Wenn auch in Deutschland selten bis gar nicht vorhanden, so sind diese besonders in Skandinavien eine recht häufig vorkommende, manchmal sogar präferierte Regierungsform. So 
+
+# 2. Theorie
+
+## 2.1 Das Modell Saalfelds (2008)
+
+Saalfeld zeigt: welche Faktoren stabilisieren oder destabilisieren allgemein Kabinette? Und auch: wie stark tun sie das?
+
+## 2.2 Warum Minderheitsregierungen nochmal neu betrachtet werden sollten (Strøm 1984, 1990)
+
+Hier: darlegen, warum die gleiche explorative Datenanalyse auch für ein Subset von NUR Minderheitsregierungen gemacht werden sollte. Dabei auf Strøm v. a. zurückgreifen
+
+## 2.3 Evtl. als eigener Absatz: was mache ich hier in dieser Arbeit?
 
 
-# Theorie
+# 3. Empirie & Untersuchung
+
+## 3.1 Daten
+
+Für die vorliegende Arbeit wurde auf folgende zwei Datensätze zurückgegriffen:
+
++ Einerseits auf die Daten von Henning Bergmann von 2019,
++ andererseits auf Daten aus dem European Representative Democracy Data Archive (ERDDA) aus dem Jahr 2014
+
+Diese beiden Datensätze wurden aufgrund ihrer Aktualität und einer Vielzahl für die vorliegende Untersuchung relevanten Variablen ausgewählt. Für die eigentliche Untersuchung wurden diese beiden zu einem gemeinsamen Datensatz verschmolzen, welcher dann wiederum im Hinblick auf die Minderheitsregierungen gefiltert wurde.
+
+Im Ergebnis zeigt sich hier, dass zur Analyse von ursprünglich 640 beobachteten Regierungen im kombinierten Datensatz im Zeitverlauf 207 Minderheitsregierungen als Untersuchungsgegenstände übrig blieben. Dies wird als ausreichend große Fallzahl angesehen.
+
+## 3.2 Methodik, Vorgehensweise bei der Untersuchung
+
+Um Aussagen über die Faktoren von Stabilität oder Instabilität treffen zu können, wurde sich für in der Analyse für ein ereignisanalytisches Vorgehen entschieden.
+
+Innerhalb dieses Bereiches wurde sich für die Cox Proportional Hazards Modelle entschieden: aus den Ergebnissen dieser lässt sich zum Schluss gut herauslesen, welche Faktoren es sind, die letztlich *signifikant* etwas über die Stabilität oder Instabilität der Minderheitsregierungen aussagen können. Dies wird anhand der Hazard Ratios geschehen.
+
+Um die Modellvoraussetzungen zu überprüfen, werden für jedes in der Analyse gerechnete Modell ebenfalls auch die Schoenfeld-Residuen berechnet, um Aussagen über die Proportional Hazards Assumption treffen zu können. Nur wenn bei diesem Test alle in einem Cox-Modell einbezogenen Variablen einen p-Wert > 0.05 aufweisen konnten, d. h. nur bei einem insignifikanten Test für die Proportional Hazards Assumption bei allen Variablen in einem Modell, konnte die Nullhypothese, die PH-Assumption liege nicht vor, abgelehnt werden und das Modell konnte so bestehen bleiben (Grambsch/Therneau 1994).
+
+Ebenso wurden, um schon vorher auf diese Problematik einzugehen, für jedes gerechnete Modell sogenannte "Heatmaps" erstellt, welche die Korrelation der Variablen untereinander darstellen. Hierbei wurden dann, sofern dies der Fall war, hoch korrelierende Variablen so behandelt, dass immer eine dieser Variablen ausgeschlossen werden sollte. Dabei wurde sich immer für diejenige entschieden, für die ein geringeres Erklärungspotential im Hinblick auf das zu rechnende Modell zu erwarten gewesen wäre.
+
+## 3.3 Ergebnisse aus den gerechneten Modellen
+
+Nun soll in diesem Abschnitt auf die gerechneten Modelle selbst eingegangen werden. Um dem Vorbild des Modells von Saalfeld von 2008 gerecht zu werden, wurden, wie bereits in Abschnitt 2.1 zu eben jenem Modell erklärt, für die Bereiche *Struktur*, *Präferenzen*, *Institutionen* und *Bargaining* einzelne Modelle gerechnet.
+<!-- Danach folgt in vorliegender Analyse direkt das Modell des *best fit* - anders als bei Saalfeld, wo noch der Bereich der *kritischen, externen Ereignisse* mit aufgenommen wurde. Jedoch wurde dies in vorliegender Analyse bewusst unterlassen, was dreierlei Gründe hat. Der erste Grund hierfür ist rein pragmatisch: in den für diese Arbeit vorliegenden Daten finden sich zwar Variablen, die, wie bei Saalfeld einbezogen, die Inflation und die Arbeitslosigkeit als kritische Events darstellen. Diese Variablen sind jedoch bezüglich ihrer Codierung nicht kongruent mit denen aus dem Vorbildmodell. -->
+<!-- Zweitens muss auch in dieser Arbeit ein gewisser Rahmen gewahrt werden. Mit den anderen vier Bereichen und einem best fit-Modell ist dieser jedoch schon mehr als ausgereizt. -->
+<!-- Drittens, und wohl der ausschlaggebendste Grund, wurde auch von Saalfeld darauf hingewiesen, dass die Variablen aus dem Bereich der *kritischen Ereignisse* wenig bis kein Erklärungspotential besitzen, . -->
 
 
-# Empirie & Untersuchung
+# 4. Fazit
 
 
-# Fazit
+# 5. Literaturverzeichnis
+
++ Grambsch, Patricia; Therneau, Terry (1994): *Proportional hazards tests and diagnostics based on weighted residuals*, Biometrika, 81, S. 515-526.
+
++ 
 
 
-# Literaturverzeichnis
+
+# 6. Abbildungsverzeichnis
+
+```{r Bild 1, echo=FALSE}
+
+```
+
+
 
 
 # Eigenständigkeitserklärung
@@ -71,23 +152,5 @@ Bamberg, den XX.YY.ZZZZ
 
 
 Unterschrift Florian Wisniewski
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
