@@ -265,18 +265,15 @@ car::vif(coxPH.CRIT.ABS)
 
 ```{r}
 # first step: generate one big subset out of the others
-sbAll <- cbind(sbBarg, sbInstit, sbPreferences, sbStructure)
+sbAll <- cbind(sbBarg, sbInstit, sbPreferences, sbStructure, sbCrit.Abs)
 
 #this HAS to be executed in this order!
 sbAll[c(7, 8, 15, 16, 23, 24)] <- list(NULL)
 sbAll[22] <- NULL
 sbAll[22] <- NULL
+sbAll[c(23, 24)] <- list(NULL)
+sbAll[c(26, 27)] <- list(NULL)
 
-# sbAll.step <- sbAll
-# sbAll.step[c(1, 2)] <- list(NULL)
-
-# second step: survObj for sbAll
-# Surv(time = sbAll$abs_dur, event = sbAll$discr2019)
 ```
 
 

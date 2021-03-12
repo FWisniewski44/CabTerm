@@ -30,6 +30,8 @@ library(desc)
 library(PerformanceAnalytics)
 library(reshape2)
 library(d3heatmap)
+library(kableExtra)
+library(gtools)
 
 ########################################### models test with safely merged df
 
@@ -362,23 +364,25 @@ car::vif(coxPH.CRIT.ABS)
 
 ################ BEST FIT? ################
 # first step: generate one big subset out of the others
-sbAll <- cbind(sbBarg, sbInstit, sbPreferences, sbStructure)
+sbAll <- cbind(sbBarg, sbInstit, sbPreferences, sbStructure, sbCrit.Abs)
 
 #this HAS to be executed in this order!
 sbAll[c(7, 8, 15, 16, 23, 24)] <- list(NULL)
 sbAll[22] <- NULL
 sbAll[22] <- NULL
+sbAll[c(23, 24)] <- list(NULL)
+sbAll[c(26, 27)] <- list(NULL)
 
 # sbAll.step <- sbAll
 # sbAll.step[c(1, 2)] <- list(NULL)
 
-# second step: survObj for sbAll
-Surv(time = sbAll$abs_dur, event = sbAll$discr2019)
-
-# third step: model fit and misc for sbAll
-coxPH.ALL <- coxph(data = sbAll, Surv(time = sbAll$abs_dur, event = sbAll$discr2019) ~ . -abs_dur - discr2019)
-summary(coxPH.ALL)
-cox.zph(coxPH.ALL)
+# # second step: survObj for sbAll
+# Surv(time = sbAll$abs_dur, event = sbAll$discr2019)
+# 
+# # third step: model fit and misc for sbAll
+# coxPH.ALL <- coxph(data = sbAll, Surv(time = sbAll$abs_dur, event = sbAll$discr2019) ~ . -abs_dur - discr2019)
+# summary(coxPH.ALL)
+# cox.zph(coxPH.ALL)
 
 # get rid of NAs
 sbAll <- na.omit(sbAll)
@@ -391,9 +395,10 @@ modFull <- coxph(data = sbAll, Surv(time = sbAll$abs_dur, event = sbAll$discr201
 stepAIC(modNull, scope = list(upper = modFull), direction = "both")
 
 # best fit as object with summary and test for ph assumption
-best.fit <- coxph(data = sbAll, Surv(time = sbAll$abs_dur, event = sbAll$discr2019) ~ soc_cab + 
-                    cons_cab + effec_parties_parl + cabunan + erdda_bicam + max_poss_dur + 
-                    cab_seat_share + same_pm + pm_pow + erdda_semip)
+best.fit <- coxph(formula = Surv(time = sbAll$abs_dur, event = sbAll$discr2019) ~ 
+                    cabunan + effec_parties_parl + erdda_bicam + pref_range + 
+                    parl_pref_range + unemploy_Abs + num_cabparties + elect_volat + 
+                    median_party_cab + erdda_semip, data = sbAll)
 summary(best.fit)
 cox.zph(best.fit)
 car::vif(best.fit)
