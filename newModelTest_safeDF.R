@@ -41,6 +41,79 @@ fre(BergmannERDDA$discr2019)
 fre(combo$discr2019)
 fre(BergmannERDDA$discr2019)
 
+################################## trial and error: mutating vars for inflation etc
+
+# we want to acquire variables for the critical events perspective in the paper.
+# therefore, some calculations have to be made; first, rename all relevant variables.
+# in a second step, use mutate to get absolute difference values between performance vars
+# for each cabinet. then, in a third step, use this absolute difference to calculate the 
+# percentage change - these two can be used as values to check the overall performance of
+# cabinets in economic terms such as inflation, unemployment and economic growth - also in
+# comparison to former governments.
+
+# rename relevant vars
+BergmannERDDA <- BergmannERDDA %>% rename("inflation_begin" = "v702e", 
+                                          "inflation_end" = "v706e")
+
+BergmannERDDA <- BergmannERDDA %>% rename("unemploy_begin" = "v703e",
+                                          "unemploy_end" = "v705e")
+
+BergmannERDDA <- BergmannERDDA %>% rename("growth_begin" = "v704e",
+                                          "growth_end" = "v707e")
+
+# test: set 99999 to 1 and Inf to 1
+BergmannERDDA[BergmannERDDA == 99999] <- NA
+BergmannERDDA[BergmannERDDA == Inf] <- NA
+BergmannERDDA[BergmannERDDA == -Inf] <- NA
+BergmannERDDA[BergmannERDDA == 88888] <- NA
+
+
+# mutate: we want precentage difference. calculate abs. diff. first
+
+# INFLATION: ABSOLUTE DIFF.
+BergmannERDDA <- BergmannERDDA %>%
+  mutate(inflation_Abs = (inflation_end - inflation_begin))
+
+fre(BergmannERDDA$inflation_Abs)
+
+# # INFLATION: % DIFF.
+# BergmannERDDA <- BergmannERDDA %>%
+#   mutate(inflation_percChange = (inflation_Abs / inflation_begin)*100)
+# 
+# fre(BergmannERDDA$inflation_percChange)
+
+#####
+
+# UNEMPLOYMENT: ABSOLUTE DIFF.
+BergmannERDDA <- BergmannERDDA %>%
+  mutate(unemploy_Abs = (unemploy_end - unemploy_begin))
+
+fre(BergmannERDDA$unemploy_Abs)
+
+# # UNEMPLOYMENT: % DIFF.
+# BergmannERDDA <- BergmannERDDA %>%
+#   mutate(unemploy_percChange = (unemploy_Abs / unemploy_begin)*100)
+# 
+# fre(BergmannERDDA$unemploy_percChange)
+
+#####
+
+# GROWTH: ABSOLUTE DIFF.
+BergmannERDDA <- BergmannERDDA %>%
+  mutate(growth_Abs = (growth_end - growth_begin))
+
+fre(BergmannERDDA$growth_Abs)
+
+# # GROWTH: % DIFF.
+# BergmannERDDA <- BergmannERDDA %>%
+#   mutate(growth_percChange = (growth_Abs/growth_begin)*100)
+# 
+# fre(BergmannERDDA$growth_percChange)
+
+# which(grepl(-58.1, BergmannERDDA$growth_Abs))
+# 
+# which(grepl(-5100, BergmannERDDA$growth_percChange))
+
 ########################################### 
 
 BergmannERDDA$v329e
@@ -56,7 +129,10 @@ combo %>% filter(minor_coalition == 1 | one_party_minor == 1)
 # filter: non partisan govs // edit: value is 0 for all 207 obs.
 fre(BergmannERDDA.f$non_partisan_cabinet)
 
-
+# test: how's it going with my calculated vars?
+fre(BergmannERDDA.f$inflation_Abs)
+fre(BergmannERDDA.f$unemploy_Abs)
+fre(BergmannERDDA.f$growth_Abs)
 
 
 ########################################### recoding needed vars from erdda-part
@@ -88,13 +164,14 @@ sbStructure <- subset(BergmannERDDA.f, select = c("discr2019", "abs_dur", "cab_s
 corStructure <- round(cor(sbStructure), 2)
 
 corrplot(corStructure, type = "upper", method = "number", order = "hclust")
+d3heatmap::d3heatmap(corStructure, Rowv = FALSE, Colv=FALSE)
 # exclude coal_cab (correlates: .84 with num_cabparties)
 
 # surv object
 Surv(time = sbStructure$abs_dur, event = sbStructure$discr2019, type = "right")
 
 # model fit for part I: STRUCTURE (with coal_cab kicked due to high corr values)
-coxPH.STR <- coxph(data = sbStructure, Surv(time = sbStructure$abs_dur, event = sbStructure$discr2019 type = "right") ~ . - abs_dur - discr2019 - coal_cab)
+coxPH.STR <- coxph(data = sbStructure, Surv(time = sbStructure$abs_dur, event = sbStructure$discr2019, type = "right") ~ . - abs_dur - discr2019 - coal_cab)
 summary(coxPH.STR)
 cox.zph(coxPH.STR)
 car::vif(coxPH.STR)
@@ -195,6 +272,7 @@ BergmannERDDA.f <- BergmannERDDA.f %>% rename("erdda_barg_dur" = "v600e",
 sbBarg <- subset(BergmannERDDA.f, select = c("discr2019", "abs_dur", "same_pm",
                                                "erdda_barg_dur", "max_poss_dur", "coal_cab"))
 
+# correlations
 corBarg <- round(cor(sbBarg), 2)
 
 corrplot(corBarg, type = "upper", method = "number")
@@ -204,7 +282,7 @@ d3heatmap::d3heatmap(corBarg, Rowv = FALSE, Colv=FALSE)
 # surv object
 Surv(time = sbBarg$abs_dur, event = sbBarg$discr2019, type = "right")
 
-# model fit for part I: STRUCTURE 
+# model fit for part IV: BARGAINING 
 coxPH.BARG <- coxph(data = sbBarg, Surv(time = sbBarg$abs_dur, event = sbBarg$discr2019, type = "right") ~ . - abs_dur - discr2019)
 summary(coxPH.BARG)
 cox.zph(coxPH.BARG)
@@ -213,13 +291,82 @@ car::vif(coxPH.BARG)
 ################ CRIT. EV. ################
 # i have to see if this will be included...
 
+# inflation_percChange
+# unemploy_percChange
+# v700e = total electoral volatility (unit = % of votes)
+
+BergmannERDDA.f <- BergmannERDDA.f %>% rename("elect_volat" = "v700e")
+
+# # subset for percentage change vars
+# sbCrit.Perc <- subset(BergmannERDDA.f, select = c("discr2019", "abs_dur", "elect_volat", 
+#                                              "inflation_percChange", "unemploy_percChange",
+#                                              "soc_cab", "cons_cab"))
+
+# subset for absolute vars
+sbCrit.Abs <- subset(BergmannERDDA.f, select = c("discr2019", "abs_dur", "elect_volat", 
+                                                 "inflation_Abs", "unemploy_Abs",
+                                                 "soc_cab", "cons_cab"))
+
+# # subset for inflation and unemployment as given in df
+# sbCrit.normal <- subset(BergmannERDDA.f, select = c("discr2019", "abs_dur", "elect_volat", 
+#                                                     "inflation_begin", "inflation_end",
+#                                                     "unemploy_begin", "unemploy_end",
+#                                                     "soc_cab", "cons_cab"))
+
+
+# correlations matrix: absolute and percentage change vars
+corCrit.Abs <- round(cor(sbCrit.Abs), 2)
+# corCrit.Perc <- round(cor(sbCrit.Perc), 4)
+# corCrit.normal <- round(cor(sbCrit.normal), 4)
+
+# correlation heatmaps: absolute vars
+corrplot(corCrit.Abs, type = "upper", method = "number")
+d3heatmap::d3heatmap(corCrit.Abs, Rowv = FALSE, Colv=FALSE)
+
+# # correlation heatmaps: percentage change vars
+# corrplot(corCrit.Perc, type = "upper", method = "number")
+# d3heatmap::d3heatmap(corCrit.Perc, Rowv = FALSE, Colv=FALSE)
+# 
+# # correlation heatmaps: normal sb
+# corrplot(corCrit.normal, type = "upper", method = "number")
+# d3heatmap::d3heatmap(corCrit.normal, Rowv = FALSE, Colv=FALSE)
+
+
+# surv object
+Surv(time = sbCrit$abs_dur, event = sbCrit$discr2019, type = "right")
+
+# model fit for part V: CRITICAL EVENTS 
+coxPH.CRIT.ABS <- coxph(data = sbCrit, Surv(time = sbCrit$abs_dur, event = sbCrit$discr2019, type = "right") ~ 
+                          elect_volat + unemploy_Abs + inflation_Abs -
+                          soc_cab - cons_cab)
+summary(coxPH.CRIT.ABS)
+cox.zph(coxPH.CRIT.ABS)
+# with interaction effects, the ph assumption is not met
+# without this, it is very closely met, but nothing is significant
+
+car::vif(coxPH.CRIT.ABS)
+# with interactions, VIFs are unnaturally high
+# without interactions, VIFs are even higher...
+
+# # model fit: again for normal
+# cox1 <- coxph(data = sbCrit.normal, Surv(time = sbCrit.normal$abs_dur, event = sbCrit.normal$discr2019, type = "right") ~ unemploy_begin + unemploy_end + 
+#         elect_volat + inflation_begin + inflation_end + unemploy_begin*soc_cab + unemploy_end*soc_cab + inflation_begin*cons_cab + inflation_end*cons_cab - 
+#         soc_cab - cons_cab)
+# 
+# summary(cox1)
+# cox.zph(cox1) # ph assumption verletzt
+
+# inflation_percChange has infinite values that R can not grasp in coxph model...
+
+
 
 ################ BEST FIT? ################
 # first step: generate one big subset out of the others
 sbAll <- cbind(sbBarg, sbInstit, sbPreferences, sbStructure)
 
 #this HAS to be executed in this order!
-sbAll[c(6, 7, 14, 15, 22, 23)] <- list(NULL)
+sbAll[c(7, 8, 15, 16, 23, 24)] <- list(NULL)
+sbAll[22] <- NULL
 sbAll[22] <- NULL
 
 # sbAll.step <- sbAll
@@ -251,10 +398,27 @@ summary(best.fit)
 cox.zph(best.fit)
 car::vif(best.fit)
 
-
 ################ SAVE DF ##################
 save(BergmannERDDA.f, file = "BergmannERDDA.f.RData")
 save(sbAll, file = "sbAll.RData")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 ########################################### correlation tests! (do this for each level individually)
 

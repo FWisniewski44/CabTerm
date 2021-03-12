@@ -1,8 +1,11 @@
 ---
 title: "Faktoren der (In-)Stabilität von Minderheitsregierungen in Europa"
 author: "Florian Wisniewski"
-date: "3/10/2021"
-output: pdf_document
+date: "`r Sys.Date()`"
+output:
+  pdf_document:
+    toc: TRUE
+    number_sections: TRUE
 ---
 
 ```{r setup, include=FALSE}
@@ -42,6 +45,8 @@ library(desc)
 library(PerformanceAnalytics)
 library(reshape2)
 library(d3heatmap)
+library(kableExtra)
+library(gtools)
 
 ###########################################
 
@@ -72,68 +77,265 @@ load(file = "sbAll.RData")
 
 ```
 
-# 1. Einleitung
+# Einleitung
 
-Minderheitsregierungen stellen in Europa gut ein Drittel der Regierungskabinette dar. Wenn auch in Deutschland selten bis gar nicht vorhanden, so sind diese besonders in Skandinavien eine recht häufig vorkommende, manchmal sogar präferierte Regierungsform. So 
+Minderheitsregierungen stellen in Europa gut ein Drittel der Regierungskabinette dar. Wenn auch in Deutschland selten bis gar nicht vorhanden, so sind diese besonders in Skandinavien eine recht häufig vorkommende, manchmal sogar präferierte Regierungsform - zum Beispiel besonders in Dänemark, aber auch in Norwegen.
 
-# 2. Theorie
+Und gerade in diesem Kontext sind angesprochene Minderheitsregierungen hierzulande beinahe sogar verpönt, ein Umstand, der auch aus historischer Perspektive begründet werden könnte - gespeist aus der deutschen Erinnerung an die Weimarer Republik und deren Ende. Minderheitsregierungen gelten deshalb für viele Menschen des Öfteren als instabile und leicht für parlamentarische Angriffe anfällige Regierungen.
 
-## 2.1 Das Modell Saalfelds (2008)
+Doch wird man dieser Form des Regierens bei der Einnahme eines derartigen Standpunktes in keinem Fall gerecht. Wie bereits angemerkt finden sich in der Realität vor allem im skandinavischen Raum oftmals Minderheitsregierungen an der Macht - und diese sind alles andere als handlungsunfähig. Im Gegenteil: die Notwendigkeit, Gemeinsamkeiten mit außer-koalitionären Partnern herauszuarbeiten und Kompromisse zu schließen kann ebenso belebend auf die parlamentarische Debatte wirken. Minderheitsregierungen gelten dort auch gerade deshalb als Repräsentation der regionalen Mentalität: Kompromisse werden als erstrebenswert erachtet und es wird generell versucht, auch vermeintlich randständige Akteure einzubeziehen. Somit können Minderheitsregierungen auch vorteilhaft sein - für die parlamentarische Integration, aber auch für die dortige Debattenkultur.
 
-Saalfeld zeigt: welche Faktoren stabilisieren oder destabilisieren allgemein Kabinette? Und auch: wie stark tun sie das?
+Und hierin liegt auch einer der Gründe, weshalb sich innerhalb der Forschung bereits sehr breit mit dem Thema auseinandergesetzt worden ist (vgl. Strøm 1984, 1990). Es kann durchaus angenommen werden, dass Minderheitsregierungen, um funktionieren zu können, eine andere parlamentarische Umgebung benötigen. Wie bereits im Titel vorliegender explorativ-analytischer Arbeit angekündigt, soll dieses Thema auch im Zentrum vorliegender Arbeit wiederfinden: es wird die Frage danach gestellt, welche Faktoren es überhaupt konkret sind, die im Falle von Minderheitsregierungen zu deren Stabilisierung (oder auch Destabilisierung) beitragen?
 
-## 2.2 Warum Minderheitsregierungen nochmal neu betrachtet werden sollten (Strøm 1984, 1990)
+Vorgegangen werden soll dabei wie folgt: in einem ersten Schritt wird zunächst theoretischer auf diese Thematik eingegangen. Die vorliegende Untersuchung erachtet bezüglich der methodischen Vorgehensweise das Modell Thomas Saalfelds (2008) als einen guten Ausgangspunkt. Dieses soll nun, unter Vorbehalt kleinerer Änderungen, auf einen aus aktuelleren Daten kombinierten Datensatz angewendet werden, welcher ausschließlich auf Minderheitsregierungen gefiltert wurde, um spezifische Aussagen über diese Regierungsform treffen zu können. Nachdem in gebotener Kürze auf die zugrundeliegenden Daten und die verwendete Methodik eingegangen wurde, werden die Ergebnisse präsentiert. Danach wird vorliegende Arbeit ein abschließendes Fazit zur Untersuchung selbst ziehen und besondere Befunde zum Abschluss nochmals herausstellen.
+
+
+<!-- + debatte im parlament belebt -->
+<!-- + norwegen und dänemark -->
+<!-- + besondere gegebenheiten, die minority govs brauchen -->
+
+# Theorie
+
+## Das Modell Saalfelds (2008)
+
+Zuerst wird nun also das bereits in der Einleitung angesprochene Vorbildmodell Thomas Saalfelds aus dem Jahr 2008 etwas genauer beleuchtet. Dieses erschien im Rahmen eines Aufsatzes, welcher Teil eines Sammelbandes mit dem generellen Thema Koalitionen und Koalitionsverhandlungen (Strøm et al. 2008) war. Saalfeld selbst beschäftigte sich, wie der Titel seines Texts bereits erkennen lässt, darin mit den Dynamiken und Faktoren, die über das Bestehen oder die Auflösung von Kabinetten entscheiden können. Als Rechtfertigung für seine Analyse führt er dreierlei Gründe an: Erstens wolle er Theorie (vgl. Lupia/Strøm 1995, 2008) mit Empirie besser verknüpfen. Bezüglich der empirischen Interpretation, so Saalfeld, seien die Ansätze der Transaktionskosten-Theorie und der akteurszentrierten Institutionsanalyse für ihn interessant gewesen.
+Zweitens fügt er hinzu, dass es bis zu dem damaligen Zeitpunkt noch keinen umfassenden Datensatz gab, mit dem eine solche Untersuchung überhaupt vorher möglich gewesen wäre. Mit dem Datensatz *"Comparative Parliamentary Democracy Data Archive"* (Strøm et al. 2008), welcher gerade für diesen Sammelband zusammengestellt wurde, lag dieser Datensatz jetzt vor.
+Schließlich kommt er drittens noch auf das generell diesem Sammelband inhärente Konzept der Kosten-Nutzen-Rechnung der Akteure zu sprechen, welche auch er in sein Modell einbinden wollte (Saalfeld 2008, S. 328f.).
+
+Sein Erkenntnisinteresse bezog sich dabei nun nach Lupia und Strøm (2008) auf den Einfluss verschiedener struktureller, institutioneller, auf der Präferenz von Akteuren basierter und verhandlungstheoretischer Variablen, sowie kritischer exogener Ereignisse auf die Wahrscheinlichkeit der Regierungsbeendigung.
+
+### Theorie-Background Saalfelds
+Um auf seinen theoretischen Hintergrund genauer zu sprechen zu kommen, bezieht Saalfeld zunächst einen breiteren Exkurs in die bisherige Forschung und deren Ergebnisse mit ein. Hier merkt er zunächst die Perspektive derjenigen an, welche als Vorgehensweise bei der Erforschung von Regierungsstabilität die gleichen Variablen theoretisch rechtfertigten, wie bei der Regierungsbildung zuvor schon. Dem gegenüber weist er jedoch auch auf die Position der Critical Events-Theorie hin, welche von einem zeitkonstanten Risiko für Regierungsbeendigung ausgeht. Demnach würden diese also aus der Wirkung exogener Schocks heraus beendet werden. (vgl. Saalfeld 2008, S. 332f.)
+
+Saalfeld gibt jedoch gegenüber der Critical Events-Perspektive zu bedenken, dass gerade diese Annahme der Zeitkonstanz des Beendigungsrisikos bereits als widerlegt gilt (er verweist auf Warwick 1994) und zeigt dies auch selbst nochmals graphisch (Saalfeld 2008, S. 338). Damit kann nicht davon ausgegangen werden, dass das Beendigungsrisiko für eine Regierung zu jeder Zeit gleich hoch ist.
+
+Mit Blick auf das zweite Kapitel des Sammelbands (Lupia/Strøm 2008), in dem auch für eine Kombination der bereits angesprochenen Faktoren von Struktur, Präferenzen der Akteure, institutionellen Gegebenheiten und auch kritischer Ereignisse geworben wurde, übernimmt auch Saalfeld diese Herangehensweise.
+
+### Methodik Saalfelds
+
+Für die methodische Umsetzung seines Vorhabens wählte Saalfeld bezüglich des Forschungsdesigns die Herangehensweise eines *competing risks*-Designs mit Hilfe der ereignisanalytischen Methode der *Cox-Proportional-Hazards*-Modelle. Bei diesem Forschungsdesign wird, anstatt eines gemeinsamen Beendigungsrisikos von Regierungen insgesamt, angenommen, dass es aus theoretischer Überlegung heraus in Bezug auf Regierungsbeendigungen durch entweder *vorgezogene Neuwahlen* oder auch *Kabinettsumbildungen* unterschiedlich große Risiken des Scheiterns gibt. Die Herangehensweise über ereignisanalytische Modelle hielt Saalfeld für fruchtbarer, als über einfache Regressionsmodelle, da hier eben auch die Zeitkomponente mit dargestellt und einbezogen werden kann, worin ihm uneingeschränkt zugestimmt werden kann.
+
+Bezüglich des für diese Modelle notwendigen Zensierungs-Regimes orientierte sich Saalfeld an bestehenden Theorien (vgl. Diermeier/Stevenson 1999): für das undifferenzierte Beendigungsrisiko ("pooled hazards") wurden die Fälle nach rechts zensiert. Dies bedeutet, alle Fälle wurden zensiert, welche in den Daten zum Endzeitpunkt der Erhebung noch im Amt waren oder durch technische Gründe beendet wurden (z. B. den Tod des Premiers).
+Saalfeld zensierte weiterhin im Fall der Kabinettsumbildungen ("replacement hazards") alle Kabinette, die zeitlich aus dem Rahmen vielen, technisch beendet wurden *oder* durch vorgezogene Neuwahlen nach rechts.
+Für die vorgezogenen Neuwahlen ("early elections hazards") selbst wurden umgekehrt die gleiche Operation vorgenommen: es wurden alle zum Ende der Erhebung noch bestehenden Kabinette, sowie technische Beendigungen und Kabinettsumbildungen nach rechts zensiert. Auf diese Weise erhielt Saalfeld die für sein *competing risks*-Forschungsdesign notwendigen, einzelnen Überlebensfunktionen.
+
+### Kurz zu seinen Ergebnissen
+
+
+<!-- + was genau macht saalfeld? -> modelle rechnen für einzelne bereiche; Aussagen über Faktoren, die das risiko des regierungsscheiterns erhöhen oder senken -->
+
+## Warum Minderheitsregierungen nochmal neu betrachtet werden sollten (Strøm 1984, 1990)
 
 Hier: darlegen, warum die gleiche explorative Datenanalyse auch für ein Subset von NUR Minderheitsregierungen gemacht werden sollte. Dabei auf Strøm v. a. zurückgreifen
 
-## 2.3 Evtl. als eigener Absatz: was mache ich hier in dieser Arbeit?
+## Evtl. als eigener Absatz: was mache ich hier in dieser Arbeit?
+Das Ziel vorliegender Arbeit wird es nun sein, Gemeinsamkeiten und Unterschiede im Kontrast zu vor allem Saalfelds Modell herauszuarbeiten. Die Fragen, die sich in diesem Kontext gestellt werden, sind vor allem, wie diese im Vergleich zum "Vorbild"-Modell aussehen, wenn *einzig Minderheitsregierungen* die grundlegenden Daten ausmachen.
 
+Am Forschungsdesign wurde grundlegend nichts wirklich verändert - jedoch werden in der vorliegenden Analyse einzig die "pooled hazards" für die untersuchten Kabinette untersucht. Gerechtfertigt kann dies damit werden, dass 
 
-# 3. Empirie & Untersuchung
+# Empirie & Untersuchung
 
-## 3.1 Daten
+## Daten
 
-Für die vorliegende Arbeit wurde auf folgende zwei Datensätze zurückgegriffen:
+Im nächsten Schritt soll in aller Kürze auf die in der vorliegenden Arbeit genutzten Datensätze eingegangen werden. Genutzt wurden:
 
-+ Einerseits auf die Daten von Henning Bergmann von 2019,
-+ andererseits auf Daten aus dem European Representative Democracy Data Archive (ERDDA) aus dem Jahr 2014
++ einerseits die *Daten von Henning Bergmann* (2019), welche im Rahmen des besuchten Seminars zur Verfügung gestellt wurden,
++ andererseits die Daten aus dem *European Representative Democracy Data Archive (ERDDA)* aus dem Jahr 2014
 
-Diese beiden Datensätze wurden aufgrund ihrer Aktualität und einer Vielzahl für die vorliegende Untersuchung relevanten Variablen ausgewählt. Für die eigentliche Untersuchung wurden diese beiden zu einem gemeinsamen Datensatz verschmolzen, welcher dann wiederum im Hinblick auf die Minderheitsregierungen gefiltert wurde.
+Diese beiden Datensätze wurden aufgrund ihrer Aktualität und einer Vielzahl für die vorliegende Untersuchung relevanten Variablen ausgewählt. Der ERDDA-Datensatz umfasst im Großen und Ganzen beinahe identische Variablen, wie der von Saalfeld 2008 genutzte CPD-Datensatz - jedoch ist er mit aktuelleren Informationen bestückt.
+Für die Untersuchung selbst wurden diese beiden zu einem gemeinsamen Datensatz verschmolzen, welcher dann wiederum im Hinblick auf die Minderheitsregierungen gefiltert wurde. Dies wurde über einen 1:1-merge-Befehl und die Identifikationsvariable "cab_code", welche den einzigartigen Kabinettscode eines Regierungskabinetts beinhaltet, durchgeführt.
 
-Im Ergebnis zeigt sich hier, dass zur Analyse von ursprünglich 640 beobachteten Regierungen im kombinierten Datensatz im Zeitverlauf 207 Minderheitsregierungen als Untersuchungsgegenstände übrig blieben. Dies wird als ausreichend große Fallzahl angesehen.
+Daraufhin wurde der Datensatz auf die im Mittelpunkt des Forschungsinteresses stehenden Minderheitsregierungen gefiltert. Es zeigte sich hier, dass zur Analyse von ursprünglich 640 beobachteten Regierungen im kombinierten Datensatz im Zeitverlauf 207 Minderheitsregierungen als Untersuchungsgegenstände übrig blieben. Dies kann als eine für die Analyse ausreichend große Fallzahl gesehen werden. Darüber hinaus wurde überprüft, ob sich im Datensatz sogenannte "non-partisan cabinets", also Übergangskabinette befinden, jedoch waren in den 207 bereits herausgefilterten Minderheitsregierungen keine mehr davon vorhanden.
 
-## 3.2 Methodik, Vorgehensweise bei der Untersuchung
+## Methodik, Vorgehensweise bei der Untersuchung
 
-Um Aussagen über die Faktoren von Stabilität oder Instabilität treffen zu können, wurde sich für in der Analyse für ein ereignisanalytisches Vorgehen entschieden.
-
-Innerhalb dieses Bereiches wurde sich für die Cox Proportional Hazards Modelle entschieden: aus den Ergebnissen dieser lässt sich zum Schluss gut herauslesen, welche Faktoren es sind, die letztlich *signifikant* etwas über die Stabilität oder Instabilität der Minderheitsregierungen aussagen können. Dies wird anhand der Hazard Ratios geschehen.
+Um Vergleichbarkeit zwischen dem Vorbild des Modells von Saalfeld 2008 und den hier geschätzten Modellen zu erreichen, wurde sich logischerweise ebenfalls für die Methode der Cox Proportional Hazards-Modelle entschieden. Da in vorliegender Arbeit nur ein pooled hazards-Modell geschätzt wurde, wurden die Daten auch nur für diese Form nach rechts zensiert.
 
 Um die Modellvoraussetzungen zu überprüfen, werden für jedes in der Analyse gerechnete Modell ebenfalls auch die Schoenfeld-Residuen berechnet, um Aussagen über die Proportional Hazards Assumption treffen zu können. Nur wenn bei diesem Test alle in einem Cox-Modell einbezogenen Variablen einen p-Wert > 0.05 aufweisen konnten, d. h. nur bei einem insignifikanten Test für die Proportional Hazards Assumption bei allen Variablen in einem Modell, konnte die Nullhypothese, die PH-Assumption liege nicht vor, abgelehnt werden und das Modell konnte so bestehen bleiben (Grambsch/Therneau 1994).
 
-Ebenso wurden, um schon vorher auf diese Problematik einzugehen, für jedes gerechnete Modell sogenannte "Heatmaps" erstellt, welche die Korrelation der Variablen untereinander darstellen. Hierbei wurden dann, sofern dies der Fall war, hoch korrelierende Variablen so behandelt, dass immer eine dieser Variablen ausgeschlossen werden sollte. Dabei wurde sich immer für diejenige entschieden, für die ein geringeres Erklärungspotential im Hinblick auf das zu rechnende Modell zu erwarten gewesen wäre.
+Ebenso wurden, um schon vorher auf diese Problematik einzugehen, für jedes gerechnete Modell sogenannte "Heatmaps" erstellt, welche die Korrelation der Variablen untereinander darstellen. Diese sind als Graphiken im Anhang beinhaltet. Der [Online-Appendix](https://github.com/FWisniewski44/CabTerm/tree/newLib_test) der Arbeit enthält R-Code für eine interaktive Version dieser Heatmaps, welche zur schnellen Determinierung der Korrelationsmaße enorm hilfreich sind. Auf Grundlage dessen wurden dann, sofern dies der Fall war, hoch miteinander korrelierende Variablen so behandelt, dass immer eine dieser Variablen ausgeschlossen werden sollte. Dabei wurde sich immer für diejenige entschieden, für die ein geringeres Erklärungspotential im Hinblick auf das zu rechnende Modell zu erwarten gewesen wäre.
 
-## 3.3 Ergebnisse aus den gerechneten Modellen
+<!-- Um Aussagen über die Faktoren von Stabilität oder Instabilität treffen zu können, wurde sich für in der Analyse für ein ereignisanalytisches Vorgehen entschieden. -->
 
-Nun soll in diesem Abschnitt auf die gerechneten Modelle selbst eingegangen werden. Um dem Vorbild des Modells von Saalfeld von 2008 gerecht zu werden, wurden, wie bereits in Abschnitt 2.1 zu eben jenem Modell erklärt, für die Bereiche *Struktur*, *Präferenzen*, *Institutionen* und *Bargaining* einzelne Modelle gerechnet.
-<!-- Danach folgt in vorliegender Analyse direkt das Modell des *best fit* - anders als bei Saalfeld, wo noch der Bereich der *kritischen, externen Ereignisse* mit aufgenommen wurde. Jedoch wurde dies in vorliegender Analyse bewusst unterlassen, was dreierlei Gründe hat. Der erste Grund hierfür ist rein pragmatisch: in den für diese Arbeit vorliegenden Daten finden sich zwar Variablen, die, wie bei Saalfeld einbezogen, die Inflation und die Arbeitslosigkeit als kritische Events darstellen. Diese Variablen sind jedoch bezüglich ihrer Codierung nicht kongruent mit denen aus dem Vorbildmodell. -->
-<!-- Zweitens muss auch in dieser Arbeit ein gewisser Rahmen gewahrt werden. Mit den anderen vier Bereichen und einem best fit-Modell ist dieser jedoch schon mehr als ausgereizt. -->
-<!-- Drittens, und wohl der ausschlaggebendste Grund, wurde auch von Saalfeld darauf hingewiesen, dass die Variablen aus dem Bereich der *kritischen Ereignisse* wenig bis kein Erklärungspotential besitzen, . -->
+<!-- Innerhalb dieses Bereiches wurde sich für die Cox Proportional Hazards Modelle entschieden: aus den Ergebnissen dieser lässt sich zum Schluss gut herauslesen, welche Faktoren es sind, die letztlich *signifikant* etwas über die Stabilität oder Instabilität der Minderheitsregierungen aussagen können. Dies wird anhand der Hazard Ratios geschehen. -->
+
+<!-- Um die Modellvoraussetzungen zu überprüfen, werden für jedes in der Analyse gerechnete Modell ebenfalls auch die Schoenfeld-Residuen berechnet, um Aussagen über die Proportional Hazards Assumption treffen zu können. Nur wenn bei diesem Test alle in einem Cox-Modell einbezogenen Variablen einen p-Wert > 0.05 aufweisen konnten, d. h. nur bei einem insignifikanten Test für die Proportional Hazards Assumption bei allen Variablen in einem Modell, konnte die Nullhypothese, die PH-Assumption liege nicht vor, abgelehnt werden und das Modell konnte so bestehen bleiben (Grambsch/Therneau 1994). -->
+
+<!-- Ebenso wurden, um schon vorher auf diese Problematik einzugehen, für jedes gerechnete Modell sogenannte "Heatmaps" erstellt, welche die Korrelation der Variablen untereinander darstellen. Hierbei wurden dann, sofern dies der Fall war, hoch korrelierende Variablen so behandelt, dass immer eine dieser Variablen ausgeschlossen werden sollte. Dabei wurde sich immer für diejenige entschieden, für die ein geringeres Erklärungspotential im Hinblick auf das zu rechnende Modell zu erwarten gewesen wäre. -->
+
+## Ergebnisse aus den gerechneten Modellen
+
+Nun soll in diesem Abschnitt auf die gerechneten Modelle selbst eingegangen werden. Um dem Vorbild des Modells von Saalfeld von 2008 zu folgen, wurden, wie bereits in Abschnitt 2.1 zu eben jenem Modell erklärt, für die Bereiche *Struktur*, *Präferenzen*, *Institutionen*, sowie und *Bargaining* und *kritische (exogene) Events* einzelne Modelle gerechnet. In Kongruenz zu Saalfeld folgt zum Schluss noch ein *best fit-Modell*, welches technisch mit einer step-Prozedur in R unter Orientierung am niedrigsten möglichen AIC-Wert errechnet wurde.
+
+### Baseline für pooled hazards mit meinen Daten
+
+```{r}
+plot(survfit(Surv(time = BergmannERDDA.f$abs_dur, event = BergmannERDDA.f$discr2019, type = "right")~1))
+```
 
 
-# 4. Fazit
+
+### Modell 1: Struktur
+
+```{r, echo=FALSE}
+
+sbStructure <- subset(BergmannERDDA.f, select = c("discr2019", "abs_dur", "cab_seat_share","num_cabparties","max_bargpow_cab", "coal_cab", "max_poss_dur","effec_parties_parl"))
+
+# model fit for part I: STRUCTURE (with coal_cab kicked due to high corr values)
+coxPH.STR <- coxph(data = sbStructure, Surv(time = sbStructure$abs_dur, event = sbStructure$discr2019, type = "right") ~ . - abs_dur - discr2019 - coal_cab)
+summary(coxPH.STR)
+cox.zph(coxPH.STR)
+car::vif(coxPH.STR)
+```
 
 
-# 5. Literaturverzeichnis
+Zu
+
+
+### Modell 2: Präferenzen
+
+```{r}
+# sbPref
+sbPreferences <- subset(BergmannERDDA.f, select = c("discr2019", "abs_dur", "pref_range","median_party_cab", "cons_cab", "soc_cab", "parl_pref_range", "polar_barg_power"))
+
+# model fit for part II: PREFERENCES 
+coxPH.PREF <- coxph(data = sbPreferences, Surv(time = sbPreferences$abs_dur, event = sbPreferences$discr2019, type = "right") ~ . - abs_dur - discr2019)
+summary(coxPH.PREF)
+cox.zph(coxPH.PREF)
+car::vif(coxPH.PREF)
+```
+
+
+
+### Modell 3: Institutionen
+
+```{r}
+# sbInst
+sbInstit <- subset(BergmannERDDA.f, select = c("discr2019", "abs_dur", "invest", "cabunan", "pm_pow", "pm_diss_pow", "erdda_bicam", "erdda_semip"))
+
+# model fit for part III: INSTITUTIONS 
+coxPH.INST <- coxph(data = sbInstit, Surv(time = sbInstit$abs_dur, event = sbInstit$discr2019, type = "right") ~ . 
+                    - abs_dur - discr2019 - pm_pow - pm_diss_pow)
+summary(coxPH.INST)
+cox.zph(coxPH.INST)
+car::vif(coxPH.INST)
+```
+
+
+
+### Modell 4: Bargaining Environment
+
+```{r}
+# sbBarg
+sbBarg <- subset(BergmannERDDA.f, select = c("discr2019", "abs_dur", "same_pm", "erdda_barg_dur", "max_poss_dur", "coal_cab"))
+
+# model fit for part IV: BARGAINING 
+coxPH.BARG <- coxph(data = sbBarg, Surv(time = sbBarg$abs_dur, event = sbBarg$discr2019, type = "right") ~ . - abs_dur - discr2019)
+summary(coxPH.BARG)
+cox.zph(coxPH.BARG)
+car::vif(coxPH.BARG)
+```
+
+
+
+### Modell 5: Kritische (exogene) Events
+
+```{r}
+
+# sbCrit
+sbCrit.Abs <- subset(BergmannERDDA.f, select = c("discr2019", "abs_dur", "elect_volat", "inflation_Abs", "unemploy_Abs", "soc_cab", "cons_cab"))
+
+# model fit for part V: CRITICAL EVENTS 
+coxPH.CRIT.ABS <- coxph(data = sbCrit.Abs, Surv(time = sbCrit.Abs$abs_dur, event = sbCrit.Abs$discr2019, type = "right") ~ elect_volat + unemploy_Abs + inflation_Abs - soc_cab - cons_cab)
+
+summary(coxPH.CRIT.ABS)
+cox.zph(coxPH.CRIT.ABS)
+# with interaction effects, the ph assumption is not met
+# without this, it is very closely met, but nothing is significant
+
+car::vif(coxPH.CRIT.ABS)
+# with interactions, VIFs are unnaturally high
+# without interactions, VIFs are even higher...
+```
+
+
+
+
+### Modell des best fit
+
+```{r}
+# first step: generate one big subset out of the others
+sbAll <- cbind(sbBarg, sbInstit, sbPreferences, sbStructure)
+
+#this HAS to be executed in this order!
+sbAll[c(7, 8, 15, 16, 23, 24)] <- list(NULL)
+sbAll[22] <- NULL
+sbAll[22] <- NULL
+
+# sbAll.step <- sbAll
+# sbAll.step[c(1, 2)] <- list(NULL)
+
+# second step: survObj for sbAll
+# Surv(time = sbAll$abs_dur, event = sbAll$discr2019)
+```
+
+
+
+```{r}
+# get rid of NAs
+sbAll <- na.omit(sbAll)
+
+# null model and full model
+modNull <- coxph(data = sbAll, Surv(time = sbAll$abs_dur, event = sbAll$discr2019) ~ 1)
+modFull <- coxph(data = sbAll, Surv(time = sbAll$abs_dur, event = sbAll$discr2019) ~ . -abs_dur - discr2019)
+
+# step function for acquiring best fit
+# stepAIC(modNull, scope = list(upper = modFull), direction = "both")
+
+# best fit as object with summary and test for ph assumption
+best.fit <- coxph(formula = Surv(time = sbAll$abs_dur, event = sbAll$discr2019, type = "right") ~ soc_cab + cons_cab + effec_parties_parl + cabunan + erdda_bicam + 
+                    max_poss_dur + cab_seat_share + same_pm + pm_pow + erdda_semip, 
+                  data = sbAll)
+summary(best.fit)
+cox.zph(best.fit)
+car::vif(best.fit)
+```
+
+```{r}
+tidyBestFit <- tidy(best.fit, exponentiate = T, conf.level = 0.95) %>% 
+  mutate(signif = stars.pval(p.value))
+
+kbl(tidyBestFit) %>% 
+  kable_classic()
+
+ggsurvplot(data = sbAll, survfit(best.fit), palette = "#2E9FDF",
+           ggtheme = theme_minimal())
+```
+
+
+# Fazit
+
+
+# Literaturverzeichnis
 
 + Grambsch, Patricia; Therneau, Terry (1994): *Proportional hazards tests and diagnostics based on weighted residuals*, Biometrika, 81, S. 515-526.
 
-+ 
++ Saalfeld, Thomas (2008): *Institutions, Chance, and Choices: The Dynamics of Cabinet Survival*, in: Strøm, Kaare; Bergman, Torbjörn; Müller, Wolfgang (eds., 2008): *Cabinets and Coalition Bargaining: The Democratic Life Cycle in Western Europe*, Oxford, Oxford University Press, S. 327-368.
+
++ Strøm, Kaare (1984): *Minority Governments in Parliamentary Democracies. The Rationality of Nonwinning Cabinet Solutions*, Comparative Political Studies, Vol. 17, Iss. 2, S. 199-227.
+
++ Strøm, Kaare (1990): *Minority Government and Majority Rule*, Cambridge, Cambridge University Press.
+
++ Lupia/Strøm 1995 und 2008 (chap 2)
+
++ Diermeier/Stevenson 1999
+
++ Grofman/van Roozendal 1997
 
 
+# Abbildungsverzeichnis
 
-# 6. Abbildungsverzeichnis
-
-```{r Bild 1, echo=FALSE}
+```{r heatmap structure}
 
 ```
 

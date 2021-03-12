@@ -331,33 +331,61 @@ save(filterBerg, file = "filterBergmann.RData")
 
 help(mutate)
 
+# rename relevant vars
+BergmannERDDA <- BergmannERDDA %>% rename("inflation_begin" = "v702e", 
+                                          "inflation_end" = "v706e")
 
-BergmannERDDA.f <- BergmannERDDA.f %>% rename("inflation_begin" = "v702e",
-                                              "inflation_end" = "v706e")
+BergmannERDDA <- BergmannERDDA %>% rename("unemploy_begin" = "v703e",
+                                          "unemploy_end" = "v705e")
 
-BergmannERDDA.f <- BergmannERDDA.f %>% rename("unemploy_begin" = "v703e",
-                                              "unemploy_end" = "v705e")
+BergmannERDDA <- BergmannERDDA %>% rename("growth_begin" = "v704e",
+                                          "growth_end" = "v707e")
 
-BergmannERDDA.f_test <- BergmannERDDA.f
 
-fre(BergmannERDDA.f_test$inflation_begin)
-fre(BergmannERDDA.f_test$inflation_end)
+# mutate: we want precentage difference. calculate abs. diff. first
 
-fre(BergmannERDDA.f_test$unemploy_begin)
-
-BergmannERDDA.f_test <- BergmannERDDA.f_test %>%
-  mutate(inflation_perCent = (inflation_end / lag(inflation_begin)-1)*100)
-
-BergmannERDDA.f_test <- BergmannERDDA.f_test %>%
+# INFLATION: ABSOLUTE DIFF.
+BergmannERDDA <- BergmannERDDA %>%
   mutate(inflation_Abs = (inflation_end - inflation_begin))
 
-fre(BergmannERDDA.f_test$inflation_perCent)
-fre(BergmannERDDA.f_test$inflation_Abs)
+fre(BergmannERDDA$inflation_Abs)
 
-fre(BergmannERDDA$v702e)
+# INFLATION: % DIFF.
+BergmannERDDA <- BergmannERDDA %>%
+  mutate(inflation_percChange = (inflation_Abs / inflation_begin)*100)
 
-BergmannERDDA.f_test <- BergmannERDDA.f_test %>%
-  mutate(unemploy_perCent = (unemploy_))
+fre(BergmannERDDA$inflation_percChange)
 
-fre(BergmannERDDA.f_test$unemploy_perCent)
+#####
+
+# UNEMPLOYMENT: ABSOLUTE DIFF.
+BergmannERDDA <- BergmannERDDA %>%
+  mutate(unemploy_Abs = (unemploy_end - unemploy_begin))
+
+fre(BergmannERDDA$unemploy_Abs)
+
+# UNEMPLOYMENT: % DIFF.
+BergmannERDDA <- BergmannERDDA %>%
+  mutate(unemploy_percChange = (unemploy_Abs / unemploy_begin)*100)
+
+fre(BergmannERDDA$unemploy_percChange)
+
+#####
+
+# GROWTH: ABSOLUTE DIFF.
+BergmannERDDA <- BergmannERDDA %>%
+  mutate(growth_Abs = (growth_end - growth_begin))
+
+fre(BergmannERDDA$growth_Abs)
+
+# GROWTH: % DIFF.
+BergmannERDDA <- BergmannERDDA %>%
+  mutate(growth_percChange = (growth_Abs / growth_begin)*100)
+
+fre(BergmannERDDA$growth_percChange)
+
+
+
+
+
 
