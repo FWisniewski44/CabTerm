@@ -9,6 +9,7 @@ library(My.stepwise)
 # libraries general
 library(tidymodels)
 library(tidyverse)
+library(rms)
 library(MASS)
 library(corrplot)
 library(lubridate)
@@ -161,19 +162,24 @@ BergmannERDDA.f <- BergmannERDDA.f %>% rename("cab_seat_share" = "v318e",
 
 sbStructure <- subset(BergmannERDDA.f, select = c("discr2019", "abs_dur", "cab_seat_share",
                                                   "num_cabparties", "max_bargpow_cab",
-                                                  "coal_cab", "max_poss_dur", "effec_parties_parl"))
+                                                  "max_poss_dur", "effec_parties_parl"))
 
-corStructure <- round(cor(sbStructure), 2)
+# correlations
+# sbStructure <- na.omit(sbStructure)
 
-corrplot(corStructure, type = "upper", method = "number", order = "hclust")
+corStructure <- round(cor(na.omit(sbStructure)), 2)
+
+# corrplot(corStructure, type = "upper", method = "circle", order = "hclust")
 d3heatmap::d3heatmap(corStructure, Rowv = FALSE, Colv=FALSE)
-# exclude coal_cab (correlates: .84 with num_cabparties)
+# exclude coal_cab (correlates: .84 with num_cabparties) - rest is fine
 
 # surv object
 Surv(time = sbStructure$abs_dur, event = sbStructure$discr2019, type = "right")
 
 # model fit for part I: STRUCTURE (with coal_cab kicked due to high corr values)
-coxPH.STR <- coxph(data = sbStructure, Surv(time = sbStructure$abs_dur, event = sbStructure$discr2019, type = "right") ~ . - abs_dur - discr2019 - coal_cab)
+coxPH.STR <- coxph(data = sbStructure, Surv(time = sbStructure$abs_dur, event = sbStructure$discr2019, type = "right") ~ . - 
+                     abs_dur - discr2019)
+extractAIC(coxPH.STR)
 summary(coxPH.STR)
 cox.zph(coxPH.STR)
 car::vif(coxPH.STR)
@@ -202,20 +208,27 @@ BergmannERDDA.f <- BergmannERDDA.f %>% rename("pref_range" = "v410e",
 
 sbPreferences <- subset(BergmannERDDA.f, select = c("discr2019", "abs_dur", "pref_range",
                                                   "median_party_cab", "cons_cab",
-                                                  "soc_cab", "parl_pref_range", "polar_barg_power"))
+                                                  "soc_cab", "parl_pref_range"))
 
-corPreferences <- round(cor(sbPreferences), 2)
-# corPreferences <- na.omit(corPreferences)
+# correlations
 
-corrplot(corPreferences, type = "upper", method = "number")
+# na.omit preferences
+# sbPreferences <- na.omit(sbPreferences)
+
+# corrmatrix
+corPreferences <- round(cor(na.omit(sbPreferences)), 2)
+
+# heatmap
+# corrplot(corPreferences, type = "upper", method = "number", addCoefasPercent = T)
 d3heatmap::d3heatmap(corPreferences, Rowv = FALSE, Colv=FALSE)
-# max correlation is -.45
+# with NAs excluded: I = polar_barg_power (.81 with parl_pref_range)
 
 # surv object
 Surv(time = sbPreferences$abs_dur, event = sbPreferences$discr2019, type = "right")
 
 # model fit for part II: PREFERENCES 
 coxPH.PREF <- coxph(data = sbPreferences, Surv(time = sbPreferences$abs_dur, event = sbPreferences$discr2019, type = "right") ~ . - abs_dur - discr2019)
+extractAIC(coxPH.PREF)
 summary(coxPH.PREF)
 cox.zph(coxPH.PREF)
 car::vif(coxPH.PREF)
@@ -244,10 +257,19 @@ sbInstit <- subset(BergmannERDDA.f, select = c("discr2019", "abs_dur", "invest",
                                                "cabunan", "pm_pow",
                                                "pm_diss_pow", "erdda_bicam", "erdda_semip"))
 
-corInstit <- round(cor(sbInstit), 2)
+# correlations
 
-corrplot(corInstit, type = "upper", method = "number")
-d3heatmap::d3heatmap(corInstit, Rowv = FALSE, Colv=FALSE)
+# na.omit institutions
+# sbInstit <- na.omit(sbInstit)
+
+# corrmatrix institutions
+corInstit <- round(cor(na.omit(sbInstit)), 2)
+
+# heatmaps
+# corrplot(corInstit, type = "upper", method = "number", order = "hclust")
+d3heatmap::d3heatmap(corInstit, Rowv = FALSE, Colv = FALSE)
+# exclude no var, no high correlations
+# highest is erdda_bicam and invest, which is theoretically explainable
 
 
 # surv object
@@ -256,6 +278,7 @@ Surv(time = sbInstit$abs_dur, event = sbInstit$discr2019, type = "right")
 # model fit for part III: INSTITUTIONS 
 coxPH.INST <- coxph(data = sbInstit, Surv(time = sbInstit$abs_dur, event = sbInstit$discr2019, type = "right") ~ . 
                     - abs_dur - discr2019 - pm_pow - pm_diss_pow)
+extractAIC(coxPH.INST)
 summary(coxPH.INST)
 cox.zph(coxPH.INST)
 car::vif(coxPH.INST)
@@ -275,11 +298,13 @@ sbBarg <- subset(BergmannERDDA.f, select = c("discr2019", "abs_dur", "same_pm",
                                                "erdda_barg_dur", "max_poss_dur", "coal_cab"))
 
 # correlations
-corBarg <- round(cor(sbBarg), 2)
+# sbBarg <- na.omit(sbBarg)
 
-corrplot(corBarg, type = "upper", method = "number")
+corBarg <- round(cor(na.omit(sbBarg)), 2)
+
+# corrplot(corBarg, type = "upper", method = "number", order = "hclust")
 d3heatmap::d3heatmap(corBarg, Rowv = FALSE, Colv=FALSE)
-
+# exclude no var, no high correlations
 
 # surv object
 Surv(time = sbBarg$abs_dur, event = sbBarg$discr2019, type = "right")
@@ -291,7 +316,7 @@ cox.zph(coxPH.BARG)
 car::vif(coxPH.BARG)
 
 ################ CRIT. EV. ################
-# i have to see if this will be included...
+# i have to see if this will be included... (update: yes, it will be included)
 
 # inflation_percChange
 # unemploy_percChange
@@ -299,30 +324,17 @@ car::vif(coxPH.BARG)
 
 BergmannERDDA.f <- BergmannERDDA.f %>% rename("elect_volat" = "v700e")
 
-# # subset for percentage change vars
-# sbCrit.Perc <- subset(BergmannERDDA.f, select = c("discr2019", "abs_dur", "elect_volat", 
-#                                              "inflation_percChange", "unemploy_percChange",
-#                                              "soc_cab", "cons_cab"))
-
-# subset for absolute vars
 sbCrit.Abs <- subset(BergmannERDDA.f, select = c("discr2019", "abs_dur", "elect_volat", 
                                                  "inflation_Abs", "unemploy_Abs",
                                                  "soc_cab", "cons_cab"))
 
-# # subset for inflation and unemployment as given in df
-# sbCrit.normal <- subset(BergmannERDDA.f, select = c("discr2019", "abs_dur", "elect_volat", 
-#                                                     "inflation_begin", "inflation_end",
-#                                                     "unemploy_begin", "unemploy_end",
-#                                                     "soc_cab", "cons_cab"))
+# correlations
+# sbCrit.Abs <- na.omit(sbCrit.Abs)
 
+corCrit.Abs <- round(cor(na.omit(sbCrit.Abs)), 2)
 
-# correlations matrix: absolute and percentage change vars
-corCrit.Abs <- round(cor(sbCrit.Abs), 2)
-# corCrit.Perc <- round(cor(sbCrit.Perc), 4)
-# corCrit.normal <- round(cor(sbCrit.normal), 4)
-
-# correlation heatmaps: absolute vars
-corrplot(corCrit.Abs, type = "upper", method = "number")
+# heatmaps
+# corrplot(corCrit.Abs, type = "upper", method = "number", order = "hclust")
 d3heatmap::d3heatmap(corCrit.Abs, Rowv = FALSE, Colv=FALSE)
 
 # # correlation heatmaps: percentage change vars
@@ -338,27 +350,21 @@ d3heatmap::d3heatmap(corCrit.Abs, Rowv = FALSE, Colv=FALSE)
 Surv(time = sbCrit$abs_dur, event = sbCrit$discr2019, type = "right")
 
 # model fit for part V: CRITICAL EVENTS 
-coxPH.CRIT.ABS <- coxph(data = sbCrit, Surv(time = sbCrit$abs_dur, event = sbCrit$discr2019, type = "right") ~ 
+coxPH.CRIT.ABS <- coxph(data = sbCrit.Abs, Surv(time = sbCrit.Abs$abs_dur, event = sbCrit.Abs$discr2019, type = "right") ~ 
                           elect_volat + unemploy_Abs + inflation_Abs -
                           soc_cab - cons_cab)
+extractAIC(coxPH.CRIT.ABS)
 summary(coxPH.CRIT.ABS)
 cox.zph(coxPH.CRIT.ABS)
+car::vif(coxPH.CRIT.ABS)
 # with interaction effects, the ph assumption is not met
-# without this, it is very closely met, but nothing is significant
+# without this, it is mostly met (except for inflation var), but if i delete that one, it is met but
+# what does this tell me? nothing...
 
 car::vif(coxPH.CRIT.ABS)
 # with interactions, VIFs are unnaturally high
-# without interactions, VIFs are even higher...
+# VIFs are ok if interactions are left out
 
-# # model fit: again for normal
-# cox1 <- coxph(data = sbCrit.normal, Surv(time = sbCrit.normal$abs_dur, event = sbCrit.normal$discr2019, type = "right") ~ unemploy_begin + unemploy_end + 
-#         elect_volat + inflation_begin + inflation_end + unemploy_begin*soc_cab + unemploy_end*soc_cab + inflation_begin*cons_cab + inflation_end*cons_cab - 
-#         soc_cab - cons_cab)
-# 
-# summary(cox1)
-# cox.zph(cox1) # ph assumption verletzt
-
-# inflation_percChange has infinite values that R can not grasp in coxph model...
 
 
 
@@ -367,11 +373,9 @@ car::vif(coxPH.CRIT.ABS)
 sbAll <- cbind(sbBarg, sbInstit, sbPreferences, sbStructure, sbCrit.Abs)
 
 #this HAS to be executed in this order!
-sbAll[c(7, 8, 15, 16, 23, 24)] <- list(NULL)
-sbAll[22] <- NULL
-sbAll[22] <- NULL
-sbAll[c(23, 24)] <- list(NULL)
-sbAll[c(26, 27)] <- list(NULL)
+sbAll[c(7, 8, 15, 16, 22, 23, 29, 30)] <- list(NULL)
+sbAll[21] <- NULL
+sbAll[c(25, 26)] <- list(NULL)
 
 # sbAll.step <- sbAll
 # sbAll.step[c(1, 2)] <- list(NULL)
@@ -384,21 +388,38 @@ sbAll[c(26, 27)] <- list(NULL)
 # summary(coxPH.ALL)
 # cox.zph(coxPH.ALL)
 
+# correlations
+
+# corrmatrix
+corAll <- round(cor(na.omit(sbAll)), 2)
+
+d3heatmap(corAll, Rowv = F, Colv = F)
+
 # get rid of NAs
 sbAll <- na.omit(sbAll)
 
 # null model and full model
-modNull <- coxph(data = sbAll, Surv(time = sbAll$abs_dur, event = sbAll$discr2019) ~ 1)
-modFull <- coxph(data = sbAll, Surv(time = sbAll$abs_dur, event = sbAll$discr2019) ~ . -abs_dur - discr2019)
+modNull <- coxph(data = sbAll, Surv(time = sbAll$abs_dur, event = sbAll$discr2019, type = "right") ~ 1)
+modFull <- coxph(data = sbAll, Surv(time = sbAll$abs_dur, event = sbAll$discr2019, type = "right") ~ . -abs_dur - discr2019)
+
+# otherCPH1 <- cph(data = sbAll, Surv(time = sbAll$abs_dur, event = sbAll$discr2019) ~ 1, surv = T, method = "breslow")
+# summary(otherCPH1)
+# otherCPH2 <- cph(data = sbAll, Surv(time = sbAll$abs_dur, event = sbAll$discr2019) ~ . -abs_dur - discr2019, surv = T, method = "breslow")
 
 # step function for acquiring best fit
 stepAIC(modNull, scope = list(upper = modFull), direction = "both")
 
+# is also possible with rms package (by Frank Harrell), but as i have just used this before for polr,
+# i will just list this as a second possible way of obtaining a step function fit
+# fastbw(rule = "p", fit = otherCPH1)
+
+
 # best fit as object with summary and test for ph assumption
-best.fit <- coxph(formula = Surv(time = sbAll$abs_dur, event = sbAll$discr2019) ~ 
+best.fit <- coxph(formula = Surv(time = sbAll$abs_dur, event = sbAll$discr2019, type = "right") ~ 
                     cabunan + effec_parties_parl + erdda_bicam + pref_range + 
                     parl_pref_range + unemploy_Abs + num_cabparties + elect_volat + 
                     median_party_cab + erdda_semip, data = sbAll)
+extractAIC(best.fit)
 summary(best.fit)
 cox.zph(best.fit)
 car::vif(best.fit)
@@ -486,7 +507,6 @@ print(d3corrplotAll)
 # results:
 ## .87 corr: coal_cab X num_cabparties
 ## .78 corr: pref_range X num_cabparties
-
 
 
 # ## test corrs between num_cabparties X pref_range, also coal_cab X pref_range

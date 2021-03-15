@@ -6,6 +6,7 @@ output:
   pdf_document:
     toc: TRUE
     number_sections: TRUE
+always_allow_html: true
 ---
 
 ```{r setup, include=FALSE}
@@ -24,6 +25,7 @@ library(My.stepwise)
 # libraries general
 library(tidymodels)
 library(tidyverse)
+library(rms)
 library(MASS)
 library(corrplot)
 library(lubridate)
@@ -71,9 +73,6 @@ BergmannERDDA <- as_tibble(BergmannERDDA)
 
 # bergmann and erdda, filtered and renamed
 load(file = "BergmannERDDA.f.RData")
-
-# subset w. all relevant vars
-load(file = "sbAll.RData")
 
 ```
 
@@ -149,11 +148,12 @@ Daraufhin wurde der Datensatz auf die im Mittelpunkt des Forschungsinteresses st
 
 ## Methodik, Vorgehensweise bei der Untersuchung
 
-Um Vergleichbarkeit zwischen dem Vorbild des Modells von Saalfeld 2008 und den hier geschätzten Modellen zu erreichen, wurde sich logischerweise ebenfalls für die Methode der Cox Proportional Hazards-Modelle entschieden. Da in vorliegender Arbeit nur ein pooled hazards-Modell geschätzt wurde, wurden die Daten auch nur für diese Form nach rechts zensiert.
+Um Vergleichbarkeit zwischen dem Vorbild des Modells von Saalfeld 2008 und den hier geschätzten Modellen zu erreichen, wurde sich logischerweise ebenfalls für die ereignisanalytische Methode der Cox Proportional Hazards-Modelle entschieden. Da in vorliegender Arbeit nur ein pooled hazards-Modell geschätzt wurde, wurden die Daten auch nur für diese Form nach rechts zensiert.
 
 Um die Modellvoraussetzungen zu überprüfen, werden für jedes in der Analyse gerechnete Modell ebenfalls auch die Schoenfeld-Residuen berechnet, um Aussagen über die Proportional Hazards Assumption treffen zu können. Nur wenn bei diesem Test alle in einem Cox-Modell einbezogenen Variablen einen p-Wert > 0.05 aufweisen konnten, d. h. nur bei einem insignifikanten Test für die Proportional Hazards Assumption bei allen Variablen in einem Modell, konnte die Nullhypothese, die PH-Assumption liege nicht vor, abgelehnt werden und das Modell konnte so bestehen bleiben (Grambsch/Therneau 1994).
 
-Ebenso wurden, um schon vorher auf diese Problematik einzugehen, für jedes gerechnete Modell sogenannte "Heatmaps" erstellt, welche die Korrelation der Variablen untereinander darstellen. Diese sind als Graphiken im Anhang beinhaltet. Der [Online-Appendix](https://github.com/FWisniewski44/CabTerm/tree/newLib_test) der Arbeit enthält R-Code für eine interaktive Version dieser Heatmaps, welche zur schnellen Determinierung der Korrelationsmaße enorm hilfreich sind. Auf Grundlage dessen wurden dann, sofern dies der Fall war, hoch miteinander korrelierende Variablen so behandelt, dass immer eine dieser Variablen ausgeschlossen werden sollte. Dabei wurde sich immer für diejenige entschieden, für die ein geringeres Erklärungspotential im Hinblick auf das zu rechnende Modell zu erwarten gewesen wäre.
+Ebenso wurden, um schon vorher auf diese Problematik einzugehen, für jedes gerechnete Modell sogenannte "Heatmaps" erstellt, welche die Korrelation der Variablen untereinander darstellen. Diese sind als Graphiken im Anhang beinhaltet. Der [Online-Appendix](https://github.com/FWisniewski44/CabTerm/tree/newLib_test) der Arbeit enthält R-Code für eine interaktive Version dieser Heatmaps, welche zur schnellen Determinierung der Korrelationsmaße enorm hilfreich sind. Auf Grundlage dieser wurden dann, sofern dies der Fall war, hoch miteinander korrelierende Variablen so behandelt, dass immer eine dieser Variablen ausgeschlossen werden sollte. Dabei wurde sich immer für diejenige entschieden, für die ein geringeres Erklärungspotential oder eine geringere theoretische Kongruenz mit den Erklärungsmustern im Hinblick auf das zu rechnende Modell zu erwarten gewesen wäre.
+Eine gewisse Vergleichbarkeit der Modelle am Schluss (auch in Relation zum best fit) kann zusätzlich durch die Angabe der AIC-Werte erreicht werden.
 
 <!-- Um Aussagen über die Faktoren von Stabilität oder Instabilität treffen zu können, wurde sich für in der Analyse für ein ereignisanalytisches Vorgehen entschieden. -->
 
@@ -165,38 +165,59 @@ Ebenso wurden, um schon vorher auf diese Problematik einzugehen, für jedes gere
 
 ## Ergebnisse aus den gerechneten Modellen
 
-Nun soll in diesem Abschnitt auf die gerechneten Modelle selbst eingegangen werden. Um dem Vorbild des Modells von Saalfeld von 2008 zu folgen, wurden, wie bereits in Abschnitt 2.1 zu eben jenem Modell erklärt, für die Bereiche *Struktur*, *Präferenzen*, *Institutionen*, sowie und *Bargaining* und *kritische (exogene) Events* einzelne Modelle gerechnet. In Kongruenz zu Saalfeld folgt zum Schluss noch ein *best fit-Modell*, welches technisch mit einer step-Prozedur in R unter Orientierung am niedrigsten möglichen AIC-Wert errechnet wurde.
+Nun soll in diesem Abschnitt auf die gerechneten Modelle selbst eingegangen werden. Um dem Vorbild des Modells von Saalfeld von 2008 zu folgen, wurden, wie bereits in Abschnitt 2.1 zu eben jenem Modell erklärt, für die Bereiche *Struktur*, *Präferenzen*, *Institutionen*, sowie und *Bargaining* und *kritische (exogene) Events* einzelne Modelle gerechnet - mit der Ausnahme der Variablen *discr2019* und *abs_dur*, aus welchen, wie bereits zuvor erwähnt, die Überlebensfunktion gerechnet wurde und mit dem Unterschied, dass die Daten sich rein auf Minderheitsregierungen bezogen. Dafür wurden jedes Mal erneut vom gesamten Datensatz abgespaltene Subsets mit den in den Bereichen fraglichen Variablen verwendet. In Kongruenz zu Saalfeld folgt zum Schluss außerdem noch ein *best fit-Modell*, welches technisch mit einer schrittweisen Errechnung in R unter Orientierung am niedrigsten möglichen AIC-Wert errechnet wurde.
 
-### Baseline für pooled hazards mit meinen Daten
-
-```{r}
-plot(survfit(Surv(time = BergmannERDDA.f$abs_dur, event = BergmannERDDA.f$discr2019, type = "right")~1))
-```
-
+Bei der Diskussion der Modelle wird nun wie folgt vorgegangen: die jeweiligen signifikanten errechneten Koeffizienten in den Modellen dieser Arbeit werden selbstverständlich für sich selbst stehend im Hinblick auf die Auswirkungen für die Stabilität oder Instabilität von Minderheitsregierungen interpretiert. Jedoch wird dies darüber hinaus auch im Vergleich und Rückblick zu den bereits vorhandenen Forschungsergebnissen von Strøm, aber vor allem Saalfeld, geschehen. Bezüglich des Signifikanzniveaus der Variablen im Modell muss noch angemerkt werden, dass vorliegende Arbeit etwas strenger vorgeht, als Saalfeld bei seinem Modell von 2008: während damals als Grenzwert 0,10 angenommen wurde, nimmt diese Arbeit das gängige Signifikanzniveau von 0,05 an.
 
 
 ### Modell 1: Struktur
 
-```{r, echo=FALSE}
+Zunächst nun also zum ersten Modell vorliegender Arbeit, welches sich mit den Variablen aus dem Bereich *"Struktur"* beschäftigt. Wie schon bei Saalfeld fielen in diesen Bereich Variablen, die sich mit der strukturellen Beschaffenheit der untersuchten Regierungen selbst, aber auch der parlamentarischen Umgebung, in der diese sich bewegen. Für das Modell wurden in den Betrachtungsdatensatz die folgenden Variablen aufgenommen:
 
-sbStructure <- subset(BergmannERDDA.f, select = c("discr2019", "abs_dur", "cab_seat_share","num_cabparties","max_bargpow_cab", "coal_cab", "max_poss_dur","effec_parties_parl"))
++ der Sitzanteil der Regierungspartei(en) im Parlament (*cab_seat_share*),
++ ob ein Kabinett eine Koalition ist (*coal_cab*),
++ die Anzahl der Kabinettsparteien (*num_cabparties*),
++ ob die Partei mit der größten Verhandlungsmacht im Kabinett vertreten war (*max_bargpow_cab*),
++ die maximal mögliche Regierungsdauer (*max_poss_dur*),
++ die effektive Anzahl von Parteien im Kabinett (Laakso/Taagepera 1979, *effec_parties_parl*).
 
-# model fit for part I: STRUCTURE (with coal_cab kicked due to high corr values)
-coxPH.STR <- coxph(data = sbStructure, Surv(time = sbStructure$abs_dur, event = sbStructure$discr2019, type = "right") ~ . - abs_dur - discr2019 - coal_cab)
+Diese wurden dann, bevor ein Modell geschätzt wurde, auf Korrelationen untereinander getestet. Dabei wurde eine sehr hohe Korrelation der Variablen *coal_cab* und *num_cabparties* entdeckt (0.84). Daraufhin wurde sich dazu entschlossen, die Variable *coal_cab* aus der Modellschätzung auszuschließen. Theoretisch gerechtfertigt werden kann dies dadurch, dass durch *num_cabparties* bereits eine Variable für die Anzahl an Kabinettsparteien beinhaltet ist und, dass bereits im Ursprungs-Datensatz sowohl Ein-Parteien-Minderheitsregierungen, als auch Koalitions-Minderheitsregierungen beinhaltet sind; daher wurde sich von der Variable über die Anzahl der Kabinettsparteien mehr Erklärungskraft erhofft.
+
+Nach dem Ausschluss der hoch korrelierenden Variablen wurde das erste Cox Proportional Hazards-Modell für den Bereich der Strukturvariablen durchgerechnet, welches nun folgende Ergebnisse lieferte
+
+```{r subset structure && model fit part 1: struture, echo=FALSE, message=FALSE, warning=FALSE, paged.print=TRUE}
+# sbStructure
+sbStructure <- subset(BergmannERDDA.f, select = c("discr2019", "abs_dur", "cab_seat_share",
+                                                  "num_cabparties", "max_bargpow_cab",
+                                                  "max_poss_dur", "effec_parties_parl"))
+
+# model for structural vars
+coxPH.STR <- coxph(data = sbStructure, Surv(time = sbStructure$abs_dur, event = sbStructure$discr2019, type = "right") ~ . - abs_dur - discr2019)
+
+extractAIC(coxPH.STR)
 summary(coxPH.STR)
 cox.zph(coxPH.STR)
 car::vif(coxPH.STR)
 ```
 
+Aus den Ergebnissen wird zunächst ersichtlich, dass der AIC-Wert des Modells 1243 beträgt. Dies ist zur Vergleichbarkeit mit den anderen Bereichen im Hinterkopf zu behalten.
+Weiterhin fällt in der Betrachtung der Signifikanzwerte für die einzelnen untersuchten Variablen auf, dass die *maximal mögliche Regierungsdauer* und auch die *Anzahl effektiver Parteien im Parlament* beide deutlich nicht signifikant und damit nicht interpretierbar sind.
+Sehr wohl zu interpretieren sind dagegen die Werte der Variablen *Sitzanteil der Regierungspartei(en) im Kabinett* (rate: -0,04 - ratio: 0,96), *Anzahl der Kabinettsparteien* (0,34 - 1,4) und, ob die *Partei mit der größten Verhandlungsmacht Teil der Regierung* ist (0,59 - 1,8).
 
-Zu
+Es kann hier für den Sitzanteil der Regierungsparteien konstatiert werden, dass das Risiko einer vorzeitigen Regierungsbeendigung um 4% sinkt, wenn der Sitzanteil des Kabinettes insgesamt sinkt. Dies ist ein zunächst konterintuitiver Befund: man würde eigentlich annehmen, dass bei einem **größeren** Sitzanteil eines Kabinettes die Wahrscheinlichkeit der früheren Beendigung dessen abnehmen würde - und nicht bei einem geringeren. Somit handelt es sich bei einem geringeren Sitzanteil eines Kabinettes um einen Stabilisierungsfaktor, wenn eine Minderheitsregierung vorliegt. Gegenüber den Befunden bei Saalfeld ist dies eine Veränderung: der Sitzanteil der Regierungsparteien im Parlament ist in dessen Modell insignifikant. Somit kann auch gesagt werden, dass dies ein speziell für Minderheitsregierungen relevanter Faktor ist.
+<!--hier noch Interpretation fortführen - entweder stimmt was nicht oder es ist ein komischer Befund. Möglicher Grund: Einparteien-Minderheitsregierungen sind stabiler, als welche mit mehr Mitgliedern, wo der Sitzanteil entsprechend größer wäre
+Auch: Saalfeld zielt auf Smith 2004 ab: one party in GB und early elections. kann ich darüber was sagen?-->
 
+Dagegen kann für die Anzahl der Kabinettsparteien und dafür, ob die Partei mit der größten Verhandlungsmacht Teil der Regierung ist, ausgesagt werden, dass dies Faktoren sind, die die Wahrscheinlichkeit eines vorzeitigen Regierungsscheiterns erhöhen.
+Für erstere wird aus dem Modell ersichtlich, dass mit einer zunehmenden Anzahl von Parteien im Kabinett auch das Regierungsscheitern wahrscheinlicher wird. Für jede neue Partei, die Teil eines Kabinetts ist, 
 
 ### Modell 2: Präferenzen
 
 ```{r}
 # sbPref
-sbPreferences <- subset(BergmannERDDA.f, select = c("discr2019", "abs_dur", "pref_range","median_party_cab", "cons_cab", "soc_cab", "parl_pref_range", "polar_barg_power"))
+sbPreferences <- subset(BergmannERDDA.f, select = c("discr2019", "abs_dur", "pref_range",
+                                                  "median_party_cab", "cons_cab",
+                                                  "soc_cab", "parl_pref_range"))
 
 # model fit for part II: PREFERENCES 
 coxPH.PREF <- coxph(data = sbPreferences, Surv(time = sbPreferences$abs_dur, event = sbPreferences$discr2019, type = "right") ~ . - abs_dur - discr2019)
@@ -263,50 +284,67 @@ car::vif(coxPH.CRIT.ABS)
 
 ### Modell des best fit
 
-```{r}
+Abschließend wird hier noch, wie zu Beginn angekündigt, das Modell des best fit gezeigt. Dieses Modell wurde in R mit Hilfe der stepAIC-Funktion errechnet. Diese Funktion errechnet jenes Modell, das den niedrigsten AIC-Wert aufweist - und welches daher die bestmögliche Passung auf die vorhandenen Daten abbildet. Es ist dafür jedoch erforderlich, dass alle mit NA gekennzeichneten Observationen vor der Durchführung zunächst aus den Daten entfernt werden mussten. Die genutzten Daten entsprechen hierbei einer Kombination aus allen zuvor für die Einzeluntersuchungen erstellten Subsets. Nach entsprechender Behandlung bleiben im kombinierten Subset für den best fit von zuvor 207 Observationen für alle Minderheitsregierungen noch 135 Observationen übrig - mit diesen wurde im Folgenden weiter gearbeitet.
+
+Bevor auf die Ergebnisse eingegangen wird, soll an dieser Stelle noch kurz etwas zur Methodik, bzw. zur Vorgehensweise, bei der Verwendung der schrittweisen Ermittlung des best fit-Modells erläutert werden. Zunächst wurden, wie bereits erwähnt, alle NA-Werte ausgeschlossen. Der auf diese Weise bereinigte Datensatz wurde dann zunächst in zwei "Vormodellen" beinhaltet, die sich wie folgt zusammengesetzt haben:
+
++ ein *"Nullmodell"*: hier wurde ein "leeres" Cox Proportional Hazards-Modell geschätzt, in welchem keine unabhängigen Variablen beinhaltet werden. Dieses Modell ist der Ausgangspunkt der Berechnung.
++ ein *"Vollmodell"*: dieses Modell beinhaltet alle in der Untersuchung der Einzelmodelle bisher verwendeten Variablen und bildet, bildhaft gesprochen, die "Obergrenze" für die durchzuführende schrittweise Berechnung.
+
+```{r config sbAll, include=FALSE}
 # first step: generate one big subset out of the others
 sbAll <- cbind(sbBarg, sbInstit, sbPreferences, sbStructure, sbCrit.Abs)
 
 #this HAS to be executed in this order!
-sbAll[c(7, 8, 15, 16, 23, 24)] <- list(NULL)
-sbAll[22] <- NULL
-sbAll[22] <- NULL
-sbAll[c(23, 24)] <- list(NULL)
-sbAll[c(26, 27)] <- list(NULL)
+sbAll[c(7, 8, 15, 16, 22, 23, 29, 30)] <- list(NULL)
+sbAll[21] <- NULL
+sbAll[c(25, 26)] <- list(NULL)
 
-```
-
-
-
-```{r}
 # get rid of NAs
 sbAll <- na.omit(sbAll)
+```
 
+```{r best fit, echo=FALSE}
 # null model and full model
-modNull <- coxph(data = sbAll, Surv(time = sbAll$abs_dur, event = sbAll$discr2019) ~ 1)
-modFull <- coxph(data = sbAll, Surv(time = sbAll$abs_dur, event = sbAll$discr2019) ~ . -abs_dur - discr2019)
+modNull <- coxph(data = sbAll, Surv(time = sbAll$abs_dur, event = sbAll$discr2019, type = "right") ~ 1)
+modFull <- coxph(data = sbAll, Surv(time = sbAll$abs_dur, event = sbAll$discr2019, type = "right") ~ . - abs_dur - discr2019)
 
 # step function for acquiring best fit
 # stepAIC(modNull, scope = list(upper = modFull), direction = "both")
 
 # best fit as object with summary and test for ph assumption
-best.fit <- coxph(formula = Surv(time = sbAll$abs_dur, event = sbAll$discr2019, type = "right") ~ soc_cab + cons_cab + effec_parties_parl + cabunan + erdda_bicam + 
-                    max_poss_dur + cab_seat_share + same_pm + pm_pow + erdda_semip, 
-                  data = sbAll)
+best.fit <- coxph(formula = Surv(time = sbAll$abs_dur, event = sbAll$discr2019,type = "right") ~ 
+                    cabunan + effec_parties_parl + erdda_bicam + 
+                    pref_range + parl_pref_range + unemploy_Abs + num_cabparties + 
+                    elect_volat + median_party_cab + erdda_semip, data = sbAll)
+extractAIC(best.fit)
 summary(best.fit)
 cox.zph(best.fit)
 car::vif(best.fit)
 ```
 
-```{r}
+Das so mittels der step-Funktion erhaltene, am besten passende Modell wurde daraufhin extrahiert und, wie zuvor bei den Einzelmodellen auch, bezüglich des AIC-Werts (best fit bei gerundet 696), der Proportional Hazards-Annahme und der VIF-Faktoren überprüft. Für die VIF-Faktoren konnte hier festgestellt werden, dass diese sich im Rahmen bewegen (alle Faktoren unter dem gängigen Grenzwert 10).
+Für die PH-Assumption, welche von der schrittweisen Berechnung des Modells durch die Funktion stepAIC nicht beachtet wird, konnte festgestellt werden, dass 
+
+
+
+
+
+
+
+
+
+
+
+```{r tidy table for best fit && survival plot for estimated model, echo=F}
 tidyBestFit <- tidy(best.fit, exponentiate = T, conf.level = 0.95) %>% 
   mutate(signif = stars.pval(p.value))
 
 kbl(tidyBestFit) %>% 
   kable_classic()
 
-ggsurvplot(data = sbAll, survfit(best.fit), palette = "#2E9FDF",
-           ggtheme = theme_minimal())
+# plot(cox.zph(best.fit))
+# cant see pattern, which is good
 ```
 
 
@@ -332,10 +370,46 @@ ggsurvplot(data = sbAll, survfit(best.fit), palette = "#2E9FDF",
 
 # Abbildungsverzeichnis
 
-```{r heatmap structure}
+```{r baseline survival function, echo=F}
+plot(survfit(Surv(time = BergmannERDDA.f$abs_dur, event = BergmannERDDA.f$discr2019, type = "right")~1))
+```
+
+
+```{r heatmap I: structure, echo=F}
+# na.omit
+sbStructure <- na.omit(sbStructure)
+
+# corrmatrix
+corStructure <- round(cor(sbStructure), 2)
+
+# heatmap (interactive)
+d3heatmap::d3heatmap(corStructure, Rowv = FALSE, Colv=FALSE)
+# exclude coal_cab (correlates: .84 with num_cabparties) - rest is fine
 
 ```
 
+
+```{r heatmap II: preferences, echo=FALSE}
+corPreferences <- round(cor(sbPreferences), 2)
+
+# heatmap
+# corrplot(corPreferences, type = "upper", method = "number")
+d3heatmap::d3heatmap(corPreferences, Rowv = FALSE, Colv=FALSE)
+# max correlation is -.45, no exclusion
+```
+
+
+
+
+
+
+```{r survival probability estimated: best.fit, echo=F}
+# survival probability estimated by model
+ggsurvplot(data = sbAll, survfit(best.fit),
+           ggtheme = theme_minimal()) + 
+  ggtitle(label = "Überlebenswahrscheinlichkeitvon Regierungen",
+          subtitle = "geschätzt durch Modell des best fit")
+```
 
 
 
