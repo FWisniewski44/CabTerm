@@ -205,10 +205,16 @@ BergmannERDDA.f <- BergmannERDDA.f %>% rename("pref_range" = "v410e",
                                               "parl_pref_range" = "v406e",
                                               "polar_barg_power" = "v407e")
 
+BergmannERDDA.f <- BergmannERDDA.f %>% rename("connected_cab" = "v413e")
+fre(BergmannERDDA.f$connected_cab)
 
 sbPreferences <- subset(BergmannERDDA.f, select = c("discr2019", "abs_dur", "pref_range",
-                                                  "median_party_cab", "cons_cab",
-                                                  "soc_cab", "parl_pref_range"))
+                                                  "median_party_cab", "cons_cab", "connected_cab",
+                                                  "soc_cab", "parl_pref_range", "antisys_seat"))
+
+# sbPrefTest <- subset(BergmannERDDA.f, select = c("discr2019", "abs_dur", "pref_range",
+#                                                  "median_party_cab", "cons_cab", "connected_cab",
+#                                                  "soc_cab", "polar_barg_power"))
 
 # correlations
 
@@ -217,14 +223,19 @@ sbPreferences <- subset(BergmannERDDA.f, select = c("discr2019", "abs_dur", "pre
 
 # corrmatrix
 corPreferences <- round(cor(na.omit(sbPreferences)), 2)
+# corPrefTest <- round(cor(na.omit(sbPrefTest)), 2)
 
 # heatmap
 # corrplot(corPreferences, type = "upper", method = "number", addCoefasPercent = T)
 d3heatmap::d3heatmap(corPreferences, Rowv = FALSE, Colv=FALSE)
-# with NAs excluded: I = polar_barg_power (.81 with parl_pref_range)
+# with NAs excluded: polar_barg_power (.81 with parl_pref_range)
+
+# d3heatmap(corPrefTest, Rowv = F, Colv = F)
 
 # surv object
 Surv(time = sbPreferences$abs_dur, event = sbPreferences$discr2019, type = "right")
+
+# Surv(time = sbPrefTest$abs_dur, event = sbPrefTest$discr2019, type = "right")
 
 # model fit for part II: PREFERENCES 
 coxPH.PREF <- coxph(data = sbPreferences, Surv(time = sbPreferences$abs_dur, event = sbPreferences$discr2019, type = "right") ~ . - abs_dur - discr2019)
@@ -232,6 +243,12 @@ extractAIC(coxPH.PREF)
 summary(coxPH.PREF)
 cox.zph(coxPH.PREF)
 car::vif(coxPH.PREF)
+
+# coxPH.PREF_T <- coxph(data = sbPrefTest, Surv(time = sbPrefTest$abs_dur, event = sbPrefTest$discr2019, type = "right") ~ . - abs_dur - discr2019)
+# extractAIC(coxPH.PREF_T)
+# summary(coxPH.PREF_T)
+# cox.zph(coxPH.PREF_T)
+# car::vif(coxPH.PREF_T)
 
 
 ################ INSTITUTIONS #############
@@ -373,9 +390,13 @@ car::vif(coxPH.CRIT.ABS)
 sbAll <- cbind(sbBarg, sbInstit, sbPreferences, sbStructure, sbCrit.Abs)
 
 #this HAS to be executed in this order!
-sbAll[c(7, 8, 15, 16, 22, 23, 29, 30)] <- list(NULL)
-sbAll[21] <- NULL
-sbAll[c(25, 26)] <- list(NULL)
+## delete double discr2019 and abs_dur
+sbAll[c(7, 8, 15, 16, 24, 25, 31, 32)] <- list(NULL)
+## delete other double vars
+### max_poss_dur
+sbAll[23] <- NULL
+### soc_cab and cons_cab
+sbAll[c(27, 28)] <- list(NULL)
 
 # sbAll.step <- sbAll
 # sbAll.step[c(1, 2)] <- list(NULL)
@@ -415,10 +436,8 @@ stepAIC(modNull, scope = list(upper = modFull), direction = "both")
 
 
 # best fit as object with summary and test for ph assumption
-best.fit <- coxph(formula = Surv(time = sbAll$abs_dur, event = sbAll$discr2019, type = "right") ~ 
-                    cabunan + effec_parties_parl + erdda_bicam + pref_range + 
-                    parl_pref_range + unemploy_Abs + num_cabparties + elect_volat + 
-                    median_party_cab + erdda_semip, data = sbAll)
+best.fit <- coxph(formula = Surv(time = sbAll$abs_dur, event = sbAll$discr2019, type = "right") ~ erdda_bicam + effec_parties_parl + parl_pref_range + 
+                    elect_volat + cabunan + unemploy_Abs - abs_dur - discr2019, data = sbAll)
 extractAIC(best.fit)
 summary(best.fit)
 cox.zph(best.fit)

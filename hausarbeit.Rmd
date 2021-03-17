@@ -2,6 +2,7 @@
 title: "Faktoren der (In-)Stabilität von Minderheitsregierungen in Europa"
 author: "Florian Wisniewski"
 date: "`r Sys.Date()`"
+documentclass: article
 output:
   pdf_document:
     toc: TRUE
@@ -183,7 +184,7 @@ Zunächst nun also zum ersten Modell vorliegender Arbeit, welches sich mit den V
 
 Diese wurden dann, bevor ein Modell geschätzt wurde, auf Korrelationen untereinander getestet. Dabei wurde eine sehr hohe Korrelation der Variablen *coal_cab* und *num_cabparties* entdeckt (0.84). Daraufhin wurde sich dazu entschlossen, die Variable *coal_cab* aus der Modellschätzung auszuschließen. Theoretisch gerechtfertigt werden kann dies dadurch, dass durch *num_cabparties* bereits eine Variable für die Anzahl an Kabinettsparteien beinhaltet ist und, dass bereits im Ursprungs-Datensatz sowohl Ein-Parteien-Minderheitsregierungen, als auch Koalitions-Minderheitsregierungen beinhaltet sind; daher wurde sich von der Variable über die Anzahl der Kabinettsparteien mehr Erklärungskraft erhofft.
 
-Nach dem Ausschluss der hoch korrelierenden Variablen wurde das erste Cox Proportional Hazards-Modell für den Bereich der Strukturvariablen durchgerechnet, welches nun folgende Ergebnisse lieferte
+Nach dem Ausschluss der hoch korrelierenden Variablen wurde das erste Cox Proportional Hazards-Modell für den Bereich der Strukturvariablen durchgerechnet, welches nun folgende Ergebnisse lieferte:
 
 ```{r subset structure && model fit part 1: struture, echo=FALSE, message=FALSE, warning=FALSE, paged.print=TRUE}
 # sbStructure
@@ -200,43 +201,83 @@ cox.zph(coxPH.STR)
 car::vif(coxPH.STR)
 ```
 
-Aus den Ergebnissen wird zunächst ersichtlich, dass der AIC-Wert des Modells 1243 beträgt. Dies ist zur Vergleichbarkeit mit den anderen Bereichen im Hinterkopf zu behalten.
-Weiterhin fällt in der Betrachtung der Signifikanzwerte für die einzelnen untersuchten Variablen auf, dass die *maximal mögliche Regierungsdauer* und auch die *Anzahl effektiver Parteien im Parlament* beide deutlich nicht signifikant und damit nicht interpretierbar sind.
-Sehr wohl zu interpretieren sind dagegen die Werte der Variablen *Sitzanteil der Regierungspartei(en) im Kabinett* (rate: -0,04 - ratio: 0,96), *Anzahl der Kabinettsparteien* (0,34 - 1,4) und, ob die *Partei mit der größten Verhandlungsmacht Teil der Regierung* ist (0,59 - 1,8).
+Aus den Ergebnissen wird zunächst ersichtlich, dass der AIC-Wert des Modells 1243 beträgt. Dies ist zur Vergleichbarkeit mit den anderen Bereichen im Hinterkopf zu behalten. Ebenso wurden die Varianzinflationsfaktoren (VIFs) geprüft - auch hier befinden sich alle Werte in einem annehmbaren Bereich von unter 10. Für das Struktur-Modell kann ebenso die Proportional Hazards-Annahme als wahr angenommen werden, da beim entsprechenden Test alle Werte insignifikant waren.
 
-Es kann hier für den Sitzanteil der Regierungsparteien konstatiert werden, dass das Risiko einer vorzeitigen Regierungsbeendigung um 4% sinkt, wenn der Sitzanteil des Kabinettes insgesamt sinkt. Dies ist ein zunächst konterintuitiver Befund: man würde eigentlich annehmen, dass bei einem **größeren** Sitzanteil eines Kabinettes die Wahrscheinlichkeit der früheren Beendigung dessen abnehmen würde - und nicht bei einem geringeren. Somit handelt es sich bei einem geringeren Sitzanteil eines Kabinettes um einen Stabilisierungsfaktor, wenn eine Minderheitsregierung vorliegt. Gegenüber den Befunden bei Saalfeld ist dies eine Veränderung: der Sitzanteil der Regierungsparteien im Parlament ist in dessen Modell insignifikant. Somit kann auch gesagt werden, dass dies ein speziell für Minderheitsregierungen relevanter Faktor ist.
-<!--hier noch Interpretation fortführen - entweder stimmt was nicht oder es ist ein komischer Befund. Möglicher Grund: Einparteien-Minderheitsregierungen sind stabiler, als welche mit mehr Mitgliedern, wo der Sitzanteil entsprechend größer wäre
-Auch: Saalfeld zielt auf Smith 2004 ab: one party in GB und early elections. kann ich darüber was sagen?-->
+Weiterhin fällt in der Betrachtung der Signifikanzwerte für die einzelnen untersuchten Variablen auf, dass die *maximal mögliche Regierungsdauer* und auch die *Anzahl effektiver Parteien im Parlament* beide deutlich nicht signifikant und damit nicht interpretierbar sind.
+Sehr wohl zu interpretieren sind dagegen die Werte der Variablen *Sitzanteil der Regierungspartei(en) im Kabinett* (hazard ratio: 0,96), *Anzahl der Kabinettsparteien* (1,4) und, ob die *Partei mit der größten Verhandlungsmacht Teil der Regierung* ist (1,8) - hier liegen die passenden p-Werte von p > 0,05 vor.
+
+Für den Sitzanteil der Regierungsparteien kann konstatiert werden, dass das Risiko einer vorzeitigen Regierungsbeendigung um 4% sinkt, wenn der Sitzanteil des Kabinettes um einen Prozentpunkt ansteigt. Eine Erklärung hierfür ist im Kontext der Minderheitsregierungen insofern schlüssig: wenn eine Minderheitsregierung, die beispielsweise nur aus einer einzelnen Partei bestehen mag, im Parlament das Regierungskabinett bildet und deren Sitzanteil steigt, so wird mit fortdauerndem Anstieg dieses Anteils die Wahrscheinlichkeit des Scheiterns immer geringer.
+Saalfeld griff in seiner Analyse hier auf die Hypothese zurück, dass auch die Wahrscheinlichkeit für Neuwahlen sinkt, wenn der Sitzanteil einer Regierung insgesamt sich vergrößert - dies jedoch im speziell britischen Fall von Ein-Parteien-Regierungen (Smith 2004, S. 87). Saalfelds Modell zeigte hier keine signifikanten Werte, weder insgesamt, noch für die beiden speziellen Beendigungsrisiken (Saalfeld 2008, S. 346). Da diese Beendigungsform zwar nicht explizit in dieser Arbeit erfasst wurde, jedoch unter das pooled hazards-Design gefasst werden kann, würde diese Arbeit jedoch dazu tendieren, die Hypothese, neben wie von Smith für Ein-Parteien-Regierungen, auch für Minderheitsregierungen als bestätigt anzusehen. Somit wäre hierin ebenfalls bereits ein Stabilisierungsfaktor identifiziert.
 
 Dagegen kann für die Anzahl der Kabinettsparteien und dafür, ob die Partei mit der größten Verhandlungsmacht Teil der Regierung ist, ausgesagt werden, dass dies Faktoren sind, die die Wahrscheinlichkeit eines vorzeitigen Regierungsscheiterns erhöhen.
-Für erstere wird aus dem Modell ersichtlich, dass mit einer zunehmenden Anzahl von Parteien im Kabinett auch das Regierungsscheitern wahrscheinlicher wird. Für jede neue Partei, die Teil eines Kabinetts ist, 
+Für erstere wird aus dem Modell ersichtlich, dass mit einer zunehmenden Anzahl von Parteien im Kabinett auch das Regierungsscheitern wahrscheinlicher wird. Für jede neue Partei, die in ein Kabinett in Minderheitssituationen hinzukommt, erhöht sich die Wahrscheinlichkeit für vorzeitige Regierungsbeendigungen um 40,6%. Für letztgenannte Variable ist dieser Effekt sogar noch stärker vertreten, es kommt zu einer um 81,3% erhöhten Scheiterwahrscheinlichkeit.
+Für *num_cabparties* steht diese Beobachtung nahezu im Einklang mit denen bei Saalfeld: auch in dessen Modell wird deutlich, dass ein das Risiko erhöhender Effekt besteht. Saalfeld begründet dies daraufhin mit seiner verhandlungstheoretischen Perspektive: je mehr Parteien in einem Kabinett beinhaltet sind, desto schwieriger kann sich Konsensfindung untereinander gestalten - erhöhte Scheiterwahrscheinlichkeit sei also nicht auszuschließen (Saalfeld 2008, S. 346).
+Im Falle der Variable *max_bargpow_cab* ergibt sich aus der modellvergleichenden Perspektive ein etwas anderes Bild. Diese Variable ist in Saalfelds Untersuchung nicht signifikant - in vorliegender jedoch schon, was sie zu einem im Fall von Minderheitsregierungen ausschlaggebenden Faktor macht. Vorliegende Analyse zeigt klar deren das Scheiterrisiko erhöhenden Effekt, welcher statistisch signifikant und quantitativ gesehen sehr hoch ist. Im Gegenteil dazu steht Saalfeld, welcher für diese Variable in den Vorüberlegungen zunächst einen das Risiko vermindernden Effekt annimmt (Saalfeld 2008, S. 344-345; unter Rückgriff auf Argumentation von van Roozendaal 1997, S. 77-78). Dieser Effekt konnte von ihm im reinen Strukturmodell so auch beobachtet werden, jedoch rein im Fall der vorgezogenen Neuwahlen, während die restlichen Terminierungsrisiken insignifikante Werte auswiesen.
 
 ### Modell 2: Präferenzen
 
-```{r}
-# sbPref
+Nun zum zweiten themenspezifischen Modell, welches Variablen enthält, die sich vor allem auf die Präferenzen der jeweiligen Akteure beziehen. Zunächst wieder eine Auflistung und kurze Erklärung dieser:
+
++ die "preference range" eines Kabinettes, codiert nach Daten des Manifesto Projects (*pref_range*)
++ ob die Medianpartei Teil eines Kabinettes ist (*median_party_cab*)
++ ob es sich um ein konservatives Kabinett handelt (*cons_cab*)
++ ob es sich um ein sozialistisches Kabinett handelt (*soc_cab*)
++ ob es sich um ein "connected cabinet" handelt, d. h. ob ideologische Kongruenz vorliegt (*connected_cab*)
+  + dabei wurden hier auch Ein-Parteien-Kabinette als connected angesehen
++ die "preference range" des gesamten Parlamentes, ebenfalls nach Manifesto Project-Daten codiert (*parl_pref_range*)
++ ein Polarisierungsmaß, welches nach der Verhandlungsmacht der Parteien gewichtet wurde (*polar_barg_power*)
++ der Sitzanteil von Anti-System-Parteien als Proxy-Maß für den Sitzanteil von extremen Parteien (*antisys_seat*)
+
+Erneut wurde zuvor auf etwaige Korrelationen zwischen den Variablen im Untersuchungsdatensatz getestet. Dabei wurde mit Hilfe der Korrelationsmatrix und der erwähnten Heatmaps ein hoher Wert (0,81) für die Variablen *parl_pref_range* und *polar_barg_power* nachgewiesen, woraufhin letztere ausgeschlossen wurde. Gerade mit Hinblick auf die Zentrierung der Untersuchung von Minderheitsregierungen erschien es sinnvoller, die preference range des gesamten Parlaments ebenfalls mit zu beinhalten, da diese für die Arbeit solcher Regierungen mehr Aussagekraft besitzt, die sich immer wieder neue Mehrheiten suchen und dabei in Verhandlungen zu anderen Parteien treten müssen.
+
+Das dahingehend bereinigte und nun gerechnete Modell ergibt somit folgende Werte:
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=TRUE}
+# sbPreferences
 sbPreferences <- subset(BergmannERDDA.f, select = c("discr2019", "abs_dur", "pref_range",
-                                                  "median_party_cab", "cons_cab",
-                                                  "soc_cab", "parl_pref_range"))
+                                                  "median_party_cab", "cons_cab", "connected_cab",
+                                                  "soc_cab", "parl_pref_range", "antisys_seat"))
 
 # model fit for part II: PREFERENCES 
 coxPH.PREF <- coxph(data = sbPreferences, Surv(time = sbPreferences$abs_dur, event = sbPreferences$discr2019, type = "right") ~ . - abs_dur - discr2019)
+extractAIC(coxPH.PREF)
 summary(coxPH.PREF)
 cox.zph(coxPH.PREF)
 car::vif(coxPH.PREF)
 ```
 
+Zunächst wieder zu den Rahmenbedinungen im Modell: es wurde zuerst ein leicht verminderter AIC-Wert im vergleich zum Struktur-Modell festgestellt (1204). Die Werte im Bereich der VIFs und auch die beim Test auf das Vorliegen der Proportional Hazards sind auch hier positiv.
 
+Bei der Betrachtung der Signifikanzwerte wird sichtbar, dass sowohl *pref_range*, als auch *median_party_cab* und *connected_cab* keine statistische Signifikanz aufweisen.
+Dagegen liegen sowohl für *cons_cab* (hazard ratio: 0,59), als auch für *soc_cab* (0,40) und *antisys_seat* (1,01) p-Werte von p < 0,05 vor, womit diese problemlos interpretiert werden können. Für *parl_pref_range* ergibt sich ein p-Wert von 0,06, also knapp über dem festgelegten Signifikanzniveau dieser Arbeit.
+
+Bei der Interpretation befinden sich sowohl die Werte für ein konservatives, als auch für ein sozialistisches Kabinett auf einer Linie mit Saalfelds Werten, wenn man sich die Richtung des Risikos ansieht. Für konservative Minderheitsregierungen sinkt die Wahrscheinlichkeit des vorzeitigen Regierungsscheiterns um 41%, verglichen mit Minderheitsregierungen eines anderen Typus. Im Falle von sozialistischen Kabinetten ist dieser Wert mit 60% im Vergleich zu Minderheitsregierungen eines anderen Typus sogar noch größer. Gerade der Fall sozialistischer Kabinette ist dieser Wert stark statistisch signifikant (0,00019). Diese Regierungsform kommt bei Minderheitsregierungen (so zum Beispiel in den skandinavischen Fällen zu beobachten), verglichen mit konservativen Kabinetten jedoch auch öfter vor, wie aus Tabelle XXXX im Anhang zu erkennen ist.
+
+Der Befund für die Antisystem-Parteien deckt sich ebenfalls mit dem aus Saalfelds Modell: das Risiko, dass eine Minderheitsregierung frühzeitig scheitert, steigt  um 6% für jeden zusätzlichen Prozentpunkt des Sitzanteils von Antisystem-Parteien. Unterschiedlich ist hier jedoch nur die verwendete Variable, da Saalfeld auf die Variable über den Sitzanteil von extremen Parteien zurückgriff, während in vorliegender Arbeit aus Aktualitätsgründen, um auch neuere Regierungsbeendigungen auf diese Variable hin zu untersuchen, jene zum Sitzanteil von Antisystem-Parteien aus dem Datensatz von Henning Bergmann (2019) genutzt wurde. Der Anteil von Antisystem-Parteien kann ebenso als ein Teil der Komplexität des gesamten Verhandlungsraums, in dem die Akteure sich bewegen, gesehen werden (Saalfeld 2008, S. 349-350). Durch die Ergebnisse kann also konstatiert werden, dass dies auch im Fall der Minderheitsregierungen zur Komplexität der Verhandlungsumgebung beiträgt.
+
+Somit ließe sich konstatieren, dass im Modell zu den Präferenzen der Akteure im Vergleich zwischen den Modellen von Saalfeld und vorliegender Arbeit 
 
 ### Modell 3: Institutionen
 
-```{r}
-# sbInst
-sbInstit <- subset(BergmannERDDA.f, select = c("discr2019", "abs_dur", "invest", "cabunan", "pm_pow", "pm_diss_pow", "erdda_bicam", "erdda_semip"))
+Im dritten Bereich wurde ein Modell geschätzt, in welchem Variablen einbezogen wurden, die besonders die institutionellen Rahmenbedingungen, in denen die parlamentarischen Akteure sich bewegen, mit in den Blick nimmt. Folgende Variablen wurden beinhaltet und auf ihre Auswirkungen auf das Scheiterrisiko von Minderheitsregierungen untersucht:
 
-# model fit for part III: INSTITUTIONS 
-coxPH.INST <- coxph(data = sbInstit, Surv(time = sbInstit$abs_dur, event = sbInstit$discr2019, type = "right") ~ . 
-                    - abs_dur - discr2019 - pm_pow - pm_diss_pow)
++ das Vorhandensein von "positivem Parlamentarismus", d. h. ob es für den Antritt einer Regierung einer Mehrheit bei einer Investiturabstimmung bedarf (*invest*)
++ ob die Entscheidungen im Kabinett einstimmig getroffen werden müssen (*cabunan*)
++ wie machtvoll die Position des Premierministers ist (*pm_pow*)
++ ob ein Premierminister die Macht hat, unilateral das Parlament aufzulösen (*pm_diss_pow*)
++ ob ein Zwei-Kammern-System vorliegt (*erdda_bicam*)
++ ob ein semipräsidentielles System vorliegt (*erdda_semip*)
+
+
+```{r institutions model (3), echo=FALSE, message=FALSE, warning=FALSE, paged.print=TRUE}
+# sbInst
+sbInstit <- subset(BergmannERDDA.f, select = c("discr2019", "abs_dur", "invest",
+                                               "cabunan", "pm_pow",
+                                               "pm_diss_pow", "erdda_bicam", "erdda_semip"))
+
+# model fit for part III: INSTITUTIONS
+coxPH.INST <- coxph(data = sbInstit, Surv(time = sbInstit$abs_dur, event = sbInstit$discr2019, type = "right") ~ . - abs_dur - discr2019 - pm_pow - pm_diss_pow)
+extractAIC(coxPH.INST)
 summary(coxPH.INST)
 cox.zph(coxPH.INST)
 car::vif(coxPH.INST)
@@ -244,9 +285,10 @@ car::vif(coxPH.INST)
 
 
 
+
 ### Modell 4: Bargaining Environment
 
-```{r}
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=TRUE}
 # sbBarg
 sbBarg <- subset(BergmannERDDA.f, select = c("discr2019", "abs_dur", "same_pm", "erdda_barg_dur", "max_poss_dur", "coal_cab"))
 
@@ -261,7 +303,7 @@ car::vif(coxPH.BARG)
 
 ### Modell 5: Kritische (exogene) Events
 
-```{r}
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=TRUE}
 
 # sbCrit
 sbCrit.Abs <- subset(BergmannERDDA.f, select = c("discr2019", "abs_dur", "elect_volat", "inflation_Abs", "unemploy_Abs", "soc_cab", "cons_cab"))
@@ -291,32 +333,34 @@ Bevor auf die Ergebnisse eingegangen wird, soll an dieser Stelle noch kurz etwas
 + ein *"Nullmodell"*: hier wurde ein "leeres" Cox Proportional Hazards-Modell geschätzt, in welchem keine unabhängigen Variablen beinhaltet werden. Dieses Modell ist der Ausgangspunkt der Berechnung.
 + ein *"Vollmodell"*: dieses Modell beinhaltet alle in der Untersuchung der Einzelmodelle bisher verwendeten Variablen und bildet, bildhaft gesprochen, die "Obergrenze" für die durchzuführende schrittweise Berechnung.
 
-```{r config sbAll, include=FALSE}
+```{r config sbAll, message=FALSE, warning=FALSE, include=FALSE, paged.print=TRUE}
 # first step: generate one big subset out of the others
 sbAll <- cbind(sbBarg, sbInstit, sbPreferences, sbStructure, sbCrit.Abs)
 
 #this HAS to be executed in this order!
-sbAll[c(7, 8, 15, 16, 22, 23, 29, 30)] <- list(NULL)
-sbAll[21] <- NULL
-sbAll[c(25, 26)] <- list(NULL)
+## delete double discr2019 and abs_dur
+sbAll[c(7, 8, 15, 16, 24, 25, 31, 32)] <- list(NULL)
+## delete other double vars
+### max_poss_dur
+sbAll[23] <- NULL
+### soc_cab and cons_cab
+sbAll[c(27, 28)] <- list(NULL)
 
 # get rid of NAs
 sbAll <- na.omit(sbAll)
 ```
 
-```{r best fit, echo=FALSE}
+```{r best fit, echo=FALSE, message=FALSE, warning=FALSE, paged.print=TRUE}
 # null model and full model
 modNull <- coxph(data = sbAll, Surv(time = sbAll$abs_dur, event = sbAll$discr2019, type = "right") ~ 1)
-modFull <- coxph(data = sbAll, Surv(time = sbAll$abs_dur, event = sbAll$discr2019, type = "right") ~ . - abs_dur - discr2019)
+modFull <- coxph(data = sbAll, Surv(time = sbAll$abs_dur, event = sbAll$discr2019, type = "right") ~ . -abs_dur - discr2019)
 
 # step function for acquiring best fit
 # stepAIC(modNull, scope = list(upper = modFull), direction = "both")
 
 # best fit as object with summary and test for ph assumption
-best.fit <- coxph(formula = Surv(time = sbAll$abs_dur, event = sbAll$discr2019,type = "right") ~ 
-                    cabunan + effec_parties_parl + erdda_bicam + 
-                    pref_range + parl_pref_range + unemploy_Abs + num_cabparties + 
-                    elect_volat + median_party_cab + erdda_semip, data = sbAll)
+best.fit <- coxph(formula = Surv(time = sbAll$abs_dur, event = sbAll$discr2019, type = "right") ~ erdda_bicam + effec_parties_parl + parl_pref_range + 
+                    elect_volat + cabunan + unemploy_Abs - abs_dur - discr2019, data = sbAll)
 extractAIC(best.fit)
 summary(best.fit)
 cox.zph(best.fit)
@@ -367,6 +411,8 @@ kbl(tidyBestFit) %>%
 
 + Grofman/van Roozendal 1997
 
++ Smith, Alastair (2004): *Election Timing*
+
 
 # Abbildungsverzeichnis
 
@@ -376,28 +422,26 @@ plot(survfit(Surv(time = BergmannERDDA.f$abs_dur, event = BergmannERDDA.f$discr2
 
 
 ```{r heatmap I: structure, echo=F}
-# na.omit
-sbStructure <- na.omit(sbStructure)
+corStructure <- round(cor(na.omit(sbStructure)), 2)
 
-# corrmatrix
-corStructure <- round(cor(sbStructure), 2)
-
-# heatmap (interactive)
-d3heatmap::d3heatmap(corStructure, Rowv = FALSE, Colv=FALSE)
-# exclude coal_cab (correlates: .84 with num_cabparties) - rest is fine
-
+corrplot(corStructure, type = "upper", method = "number", order = "hclust")
+# d3heatmap::d3heatmap(corStructure, Rowv = FALSE, Colv=FALSE)
 ```
 
 
 ```{r heatmap II: preferences, echo=FALSE}
-corPreferences <- round(cor(sbPreferences), 2)
+# corrmatrix
+corPreferences <- round(cor(na.omit(sbPreferences)), 2)
 
 # heatmap
-# corrplot(corPreferences, type = "upper", method = "number")
-d3heatmap::d3heatmap(corPreferences, Rowv = FALSE, Colv=FALSE)
-# max correlation is -.45, no exclusion
+corrplot(corPreferences, type = "upper", method = "number", order = "hclust")
+# d3heatmap::d3heatmap(corPreferences, Rowv = FALSE, Colv=FALSE)
 ```
 
+```{r table: frequencies for cons and soc, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+fre(sbPreferences$cons_cab)
+fre(sbPreferences$soc_cab)
+```
 
 
 
