@@ -171,7 +171,8 @@ corStructure <- round(cor(na.omit(sbStructure)), 2)
 
 # corrplot(corStructure, type = "upper", method = "circle", order = "hclust")
 d3heatmap::d3heatmap(corStructure, Rowv = FALSE, Colv=FALSE)
-# exclude coal_cab (correlates: .84 with num_cabparties) - rest is fine
+# exclude coal_cab (correlates: .84 with num_cabparties)
+# exclude one_party_minor(high correlation with num_cabparties, -.84)
 
 # surv object
 Surv(time = sbStructure$abs_dur, event = sbStructure$discr2019, type = "right")
@@ -272,7 +273,8 @@ BergmannERDDA.f <- BergmannERDDA.f %>% rename("invest" = "v505e",
 
 sbInstit <- subset(BergmannERDDA.f, select = c("discr2019", "abs_dur", "invest",
                                                "cabunan", "pm_pow",
-                                               "pm_diss_pow", "erdda_bicam", "erdda_semip"))
+                                               "pm_diss_pow", "erdda_bicam", "erdda_semip",
+                                               "post_election_cabinet"))
 
 # correlations
 
@@ -385,18 +387,19 @@ car::vif(coxPH.CRIT.ABS)
 
 
 
-################ BEST FIT? ################
+################ BEST FIT ################
 # first step: generate one big subset out of the others
 sbAll <- cbind(sbBarg, sbInstit, sbPreferences, sbStructure, sbCrit.Abs)
 
 #this HAS to be executed in this order!
 ## delete double discr2019 and abs_dur
-sbAll[c(7, 8, 15, 16, 24, 25, 31, 32)] <- list(NULL)
+sbAll[c(7, 8, 16, 17, 25, 26, 32, 33)] <- list(NULL)
 ## delete other double vars
 ### max_poss_dur
-sbAll[23] <- NULL
+sbAll[24] <- NULL
 ### soc_cab and cons_cab
-sbAll[c(27, 28)] <- list(NULL)
+sbAll[c(28, 29)] <- list(NULL)
+
 
 # sbAll.step <- sbAll
 # sbAll.step[c(1, 2)] <- list(NULL)
@@ -416,6 +419,11 @@ corAll <- round(cor(na.omit(sbAll)), 2)
 
 d3heatmap(corAll, Rowv = F, Colv = F)
 
+# get rid of high correlates:
+sbAll$coal_cab <- NULL
+sbAll$pref_range <- NULL
+
+
 # get rid of NAs
 sbAll <- na.omit(sbAll)
 
@@ -427,17 +435,43 @@ modFull <- coxph(data = sbAll, Surv(time = sbAll$abs_dur, event = sbAll$discr201
 # summary(otherCPH1)
 # otherCPH2 <- cph(data = sbAll, Surv(time = sbAll$abs_dur, event = sbAll$discr2019) ~ . -abs_dur - discr2019, surv = T, method = "breslow")
 
-# step function for acquiring best fit
+# step function for acquiring best fit, direction = both
 stepAIC(modNull, scope = list(upper = modFull), direction = "both")
+
+# step function with direction = backward
+stepAIC(modFull, scope = list(upper = modNull), direction = "backward")
+
+backward <- coxph(formula = Surv(time = sbAll$abs_dur, event = sbAll$discr2019, type = "right") ~ 
+                    same_pm + erdda_barg_dur + cabunan + erdda_bicam + 
+                    post_election_cabinet + parl_pref_range + antisys_seat + 
+                    cab_seat_share + effec_parties_parl + unemploy_Abs, data = sbAll)
+cox.zph(backward)
+summary(backward)
 
 # is also possible with rms package (by Frank Harrell), but as i have just used this before for polr,
 # i will just list this as a second possible way of obtaining a step function fit
 # fastbw(rule = "p", fit = otherCPH1)
 
+# # backward
+# coxph(formula = Surv(time = sbAll$abs_dur, event = sbAll$discr2019, 
+# type = "right") ~ same_pm + erdda_barg_dur + cabunan + erdda_bicam + 
+#   post_election_cabinet + pref_range + parl_pref_range + antisys_seat + 
+#   cab_seat_share + num_cabparties + effec_parties_parl + elect_volat + 
+#   unemploy_Abs, data = sbAll)
+
+# both
+coxph(formula = Surv(time = sbAll$abs_dur, event = sbAll$discr2019, 
+                     type = "right") ~ erdda_bicam + effec_parties_parl + parl_pref_range + 
+        post_election_cabinet + erdda_barg_dur + same_pm + cab_seat_share, 
+      data = sbAll)
+
+
+
 
 # best fit as object with summary and test for ph assumption
-best.fit <- coxph(formula = Surv(time = sbAll$abs_dur, event = sbAll$discr2019, type = "right") ~ erdda_bicam + effec_parties_parl + parl_pref_range + 
-                    elect_volat + cabunan + unemploy_Abs - abs_dur - discr2019, data = sbAll)
+best.fit <- coxph(formula = Surv(time = sbAll$abs_dur, event = sbAll$discr2019, type = "right") ~ 
+                    erdda_bicam + effec_parties_parl + parl_pref_range + 
+                    post_election_cabinet + erdda_barg_dur + same_pm + cab_seat_share, data = sbAll)
 extractAIC(best.fit)
 summary(best.fit)
 cox.zph(best.fit)
@@ -452,102 +486,4 @@ save(sbAll, file = "sbAll.RData")
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-########################################### correlation tests! (do this for each level individually)
-
-attach(sbAll)
-detach(sbAll)
-
-# basic corr matrix for sbAll
-cormat <- round(cor(sbAll), 2)
-meltedCormat <- reshape2::melt(cormat)
-ggplot(data = meltedCormat, aes(x = Var1, y = Var2, fill = value)) + geom_raster()
-
-###########
-
-# corr matrix: upper and lower triangular parts of matrices
-## function lower tri
-get_lower_tri <- function(cormat){
-  cormat[upper.tri(cormat)] <- NA
-  return(cormat)
-}
-
-## function upper tri
-get_upper_tri <- function(cormat){
-  cormat[lower.tri(cormat)] <- NA
-  return(cormat)
-}
-
-# ###########
-# 
-# ## use functions
-# lowerTri <- get_lower_tri(cormat)
-# upperTri <- get_upper_tri(cormat)
-# 
-# # melting triangular parts
-# meltUpper <- reshape2::melt(upperTri, na.rm = T)
-# meltLower <- reshape2::melt(lowerTri, na.rm = T)
-
-# # better heatmap [see this article](http://www.sthda.com/english/wiki/ggplot2-quick-correlation-matrix-heatmap-r-software-and-data-visualization)
-# plotUpperTri <- ggplot(data = meltUpper, aes(Var2, Var1, fill = value)) + 
-#   geom_raster(color = "white")+
-#   scale_fill_gradient2(low = "blue", high = "red", mid = "white", 
-#                        midpoint = 0, limit = c(-1,1), space = "Lab", 
-#                        name="Pearson\nCorrelation") +
-#   theme_minimal()+ 
-#   theme(axis.text.x = element_text(angle = 45, vjust = 1, 
-#                                    size = 12, hjust = 1))+
-#   coord_fixed()
-# 
-# plotUpperTri + geom_text(aes(Var2, Var1, label = value), color = "black", size = 2)
-# 
-# print(plotUpperTri)
-
-# this may be the best heatmap for .Rmd
-corrplotAll <- corrplot::corrplot(cormat, type = "upper", method = "circle", order = "hclust")
-print(corrplotAll)
-
-# this is the best heatmap: interactive
-d3corrplotAll <- d3heatmap::d3heatmap(cormat, Rowv = F, Colv = F)
-print(d3corrplotAll)
-
-# results:
-## .87 corr: coal_cab X num_cabparties
-## .78 corr: pref_range X num_cabparties
-
-
-# ## test corrs between num_cabparties X pref_range, also coal_cab X pref_range
-# ## also test invest X erdda_bicam
-# 
-# # kick out candidates
-# 
-# corr.test(sbAll$num_cabparties, sbAll$pref_range, method = "pearson")
-# # .78 --> maybe kick one var out
-# 
-# corr.test(sbAll$num_cabparties, sbAll$coal_cab, method = "pearson")
-# # .87 --> high correlation, kick one out
-# 
-# # further testing
-# 
-# corr.test(sbAll$coal_cab, sbAll$pref_range, method = "pearson")
-# # .68
-# 
-# corr.test(sbAll$invest, sbAll$erdda_bicam, method = "pearson")
-# 
-# corr.test(sbAll$num_cabparties, sbAll$coal_cab, method = "pearson")
-# 
-# # testing negative corrs
-# corr.test(sbAll$invest, sbAll$parl_pref_range, method = "pearson")
-# # -.51 - as this is the "darkest" blue spot in the heatmap, rest can safely be ignored
+# EOD
