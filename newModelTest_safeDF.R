@@ -423,6 +423,8 @@ d3heatmap(corAll, Rowv = F, Colv = F)
 sbAll$coal_cab <- NULL
 sbAll$pref_range <- NULL
 
+# sbAll$num_cabparties <- NULL
+
 
 # get rid of NAs
 sbAll <- na.omit(sbAll)
@@ -439,14 +441,14 @@ modFull <- coxph(data = sbAll, Surv(time = sbAll$abs_dur, event = sbAll$discr201
 stepAIC(modNull, scope = list(upper = modFull), direction = "both")
 
 # step function with direction = backward
-stepAIC(modFull, scope = list(upper = modNull), direction = "backward")
-
-backward <- coxph(formula = Surv(time = sbAll$abs_dur, event = sbAll$discr2019, type = "right") ~ 
-                    same_pm + erdda_barg_dur + cabunan + erdda_bicam + 
-                    post_election_cabinet + parl_pref_range + antisys_seat + 
-                    cab_seat_share + effec_parties_parl + unemploy_Abs, data = sbAll)
-cox.zph(backward)
-summary(backward)
+# stepAIC(modFull, scope = list(upper = modNull), direction = "backward")
+# 
+# backward <- coxph(formula = Surv(time = sbAll$abs_dur, event = sbAll$discr2019, type = "right") ~ 
+#                     same_pm + erdda_barg_dur + cabunan + erdda_bicam + 
+#                     post_election_cabinet + parl_pref_range + antisys_seat + 
+#                     cab_seat_share + effec_parties_parl + unemploy_Abs, data = sbAll)
+# cox.zph(backward)
+# summary(backward)
 
 # is also possible with rms package (by Frank Harrell), but as i have just used this before for polr,
 # i will just list this as a second possible way of obtaining a step function fit
@@ -482,8 +484,8 @@ save(BergmannERDDA.f, file = "BergmannERDDA.f.RData")
 save(sbAll, file = "sbAll.RData")
 
 
-
-
+fre(BergmannERDDA.f$country)
+names(BergmannERDDA.f$country)
 
 
 # EOD
