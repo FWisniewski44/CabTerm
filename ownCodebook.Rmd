@@ -18,6 +18,13 @@ output:
 
 My own codebook: vars from Saalfeld (2008), as they were coded in the data frames (Bergmann et al. and ERDDA). For future reference.
 
+# Most recent developments, thoughts - notice
++ Joined data frames not perfect: atm just glued together somehow...
++ Two separate dfs to be made in the future
+  + First df filtered for minor_coalition and post_election_cabinet
+  + Second df filtered for one_party_minor and post_election_cabinet
+  + Why this way? - check for differences in stability: are minority coalitions more stable? Or are no coalition agreements and such needed for a minority cabinet to work (i. e. one party minority cabinets that have to fight for their respective majorities on bills etc.)
+
 # ***STRUCTURE***
 _______________________________
 
@@ -42,7 +49,9 @@ _______________________________
 + minimal connected cabinet (*NOT NEEDED*)
 + median party (1st dimension) in cabinet (*erdda*: v411e)
 + conservative cabinet (*dtaBerg*: gov_comp for gov composition; *erdda*: v415e)
+  + optional: *dtaBerg*: right_vote or right_seat - vote/seat share of right wing parties (also conservatives?)
 + socialist cabinet (*dtaBerg*: gov_comp, *erdda*: v416e)
+  + optional: *dtaBerg*: comm_vote or comm_seat - vote/seat share of communist parties
 + parliamentary preference range (*dtaBerg*: rl_range, *erdda*: v406e)
 + polarization (bp weighted) (*dtaBerg*: polarization_bpw, *erdda*: v407e)
 + effective number of issue dimensions (*?????*)
