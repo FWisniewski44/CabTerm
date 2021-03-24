@@ -1,10 +1,15 @@
 ---
-title: 'Seminararbeit Koalitionsforschung WS 2020/2021 Dozent: Henning Bergmann'
+title: "Faktoren der (In-)Stabilität von Minderheitsregierungen in Europa"
 author: "Florian Wisniewski"
-date: "\today{}"
+date: "`r Sys.Date()`"
 output:
-  html_document: default
-geometry: margin=2cm
+  word_document:
+    toc: yes
+  pdf_document:
+    toc: yes
+    number_sections: yes
+documentclass: article
+always_allow_html: yes
 ---
 
 ```{r setup, include=FALSE}
@@ -18,45 +23,655 @@ library(survminer)
 library(survMisc)
 library(simPH)
 library(flexsurv)
+library(My.stepwise)
 
 # libraries general
 library(tidymodels)
 library(tidyverse)
+library(rms)
+library(MASS)
+library(corrplot)
+library(lubridate)
+library(Amelia)
 library(xtable)
 library(haven)
+library(foreign)
 library(broom)
 library(psych)
 library(Hmisc)
 library(expss)
+library(rockchalk)
+library(effects)
+library(modeldata)
+library(randomForest)
+library(compare)
+library(psych)
+library(desc)
+library(PerformanceAnalytics)
+library(reshape2)
+library(d3heatmap)
+library(kableExtra)
+library(gtools)
+library(gmodels)
+library(summarytools)
 
 ###########################################
-# import relevant dfs
-## import dta bergmann df
-dtaBerg <- read_dta(file = "/Users/flo/Documents/Uni/Uni Bamberg/WS 2020-21/S Koalitionsforschung/data/cabinets_2019_Bergmann.dta")
-str(dtaBerg)
-# View(dtaBerg)
-head(dtaBerg)
 
-## import xls ERDDA df
-erdda <- readxl::read_excel(path = "/Users/flo/Desktop/data/erdda/Data ERD-e_SA_SOE_JH_N-29_2014.xls")
-str(erdda)
-# View(erdda)
-head(erdda)
+# # import relevant dfs
+# ## import dta bergmann df
+# dtaBerg <- read_dta(file = "/Users/flo/Documents/Uni/Uni Bamberg/WS 2020-21/S Koalitionsforschung/data/cabinets_2019_Bergmann.dta")
+# str(dtaBerg)
+# # View(dtaBerg)
+# head(dtaBerg)
+# 
+# ## import xls ERDDA df
+# erdda <- readxl::read_excel(path = "/Users/flo/Desktop/data/erdda/Data ERD-e_SA_SOE_JH_N-29_2014.xls")
+# str(erdda)
+# # View(erdda)
+# head(erdda)
+
+###########################################
+
+# load simple erdda df
+erdda <- readxl::read_xls(path = "/Users/flo/Desktop/data/erdda/Data ERD-e_SA_SOE_JH_N-29_2014.xls")
+
+# bergmann and erdda, joined df
+BergmannERDDA <- read_dta(file = "/Users/flo/Documents/GitHub/CabTerm/erdda2014-Bergmann2019_merged.dta")
+BergmannERDDA <- as_tibble(BergmannERDDA)
+
+# bergmann and erdda, filtered and renamed
+load(file = "BergmannERDDA.f.RData")
+
 ```
 
 # Einleitung
 
+Minderheitsregierungen stellen in Europa gut ein Drittel der Regierungskabinette dar. Wenn auch in Deutschland selten bis gar nicht vorhanden, so sind diese besonders in Skandinavien eine recht häufig vorkommende, manchmal sogar präferierte Regierungsform - zum Beispiel besonders oft in Dänemark, aber auch in Norwegen und Schweden.
+
+Jedoch wird diese Form des Regierens auch nicht immer positiv Wahrgenommen. Gerade hierzulande gilt eine Minderheitsregierung im seltensten Fall als "Mittel der Wahl" - es besteht die Angst, eine solche Regierung sei nicht wirklich langfristig handlungs- und überlebensfähig, schon gar nicht krisensicher. Und ein Blick in die Daten zeigt: auch in Ländern, welche eine hohe "Sterblichkeit" von Regierungen aufweisen (z. B. Italien), ist die Zahl von Minderheitsregierungen hoch (vgl. Tabelle 1 im Anhang) - was hier vielleicht diesen gezogenen Schluss erklären mag.
+
+Doch wird man dieser Form des Regierens bei der Einnahme eines derartigen Standpunktes in keinem Fall gerecht. Wie bereits angemerkt finden sich in der Realität vor allem im skandinavischen Raum oftmals Minderheitsregierungen an der Macht - und diese Staaten sind alles andere als handlungsunfähig. Im Gegenteil: die Notwendigkeit, Gemeinsamkeiten mit außer-koalitionären Partnern herauszuarbeiten und Kompromisse zu schließen kann ebenso belebend auf die parlamentarische Debatte wirken. Minderheitsregierungen gelten dort auch gerade deshalb als Repräsentation der regionalen Mentalität: Kompromisse werden als erstrebenswert erachtet und es wird generell versucht, auch vermeintlich randständige Akteure einzubeziehen. Somit können Minderheitsregierungen auch vorteilhaft sein - für die parlamentarische Integration, aber auch für die dortige Debattenkultur.
+
+Und hierin liegt auch einer der Gründe, weshalb sich innerhalb der Forschung bereits sehr breit mit dem Thema auseinandergesetzt worden ist (vgl. Strøm 1984, 1990; aktueller vgl. Krauss/Thürk 2021). Es kann durchaus angenommen werden, dass Minderheitsregierungen, um funktionieren zu können, eine andere parlamentarische Umgebung benötigen. Wie bereits im Titel vorliegender explorativ-analytischer Arbeit angekündigt, soll dieses Thema auch im Zentrum vorliegender Arbeit wiederfinden: es wird die Frage danach gestellt, welche Faktoren es überhaupt konkret sind, die im Falle von Minderheitsregierungen zu deren Stabilisierung (oder auch Destabilisierung) beitragen?
+
+Vorgegangen werden soll dabei wie folgt: in einem ersten Schritt wird zunächst theoretischer auf diese Thematik eingegangen. Die vorliegende Untersuchung erachtet bezüglich der methodischen Vorgehensweise das Modell Thomas Saalfelds (2008) als einen guten Ausgangspunkt. Dieses soll nun, unter Vorbehalt kleinerer Änderungen, auf einen aus aktuelleren Daten kombinierten Datensatz angewendet werden, welcher ausschließlich auf Minderheitsregierungen gefiltert wurde, um spezifische Aussagen über diese Regierungsform treffen zu können. Nachdem in gebotener Kürze auf die zugrundeliegenden Daten und die verwendete Methodik eingegangen wurde, werden die Ergebnisse präsentiert. Danach wird vorliegende Arbeit ein abschließendes Fazit zur Untersuchung selbst ziehen und besondere Befunde zum Abschluss nochmals herausstellen.
+
+
+<!-- + debatte im parlament belebt -->
+<!-- + norwegen und dänemark -->
+<!-- + besondere gegebenheiten, die minority govs brauchen -->
 
 # Theorie
 
+## Das Modell Saalfelds (2008)
+
+Zuerst wird nun also das bereits in der Einleitung angesprochene Vorbildmodell Thomas Saalfelds aus dem Jahr 2008 etwas genauer beleuchtet. Dieses erschien im Rahmen eines Aufsatzes, welcher Teil eines Sammelbandes mit dem generellen Thema Koalitionen und Koalitionsverhandlungen (Strøm et al. 2008) war. Saalfeld selbst beschäftigte sich, wie der Titel seines Texts bereits erkennen lässt, darin mit den Dynamiken und Faktoren, die über das Bestehen oder die Auflösung von Kabinetten entscheiden können. Als Rechtfertigung für seine Analyse führt er dreierlei Gründe an: Erstens wolle er Theorie (vgl. Lupia/Strøm 1995, 2008) mit Empirie besser verknüpfen. Bezüglich der empirischen Interpretation, so Saalfeld, seien die Ansätze der Transaktionskosten-Theorie und der akteurszentrierten Institutionsanalyse für ihn interessant gewesen.
+Zweitens fügt er hinzu, dass es bis zu dem damaligen Zeitpunkt noch keinen umfassenden Datensatz gab, mit dem eine solche Untersuchung überhaupt vorher möglich gewesen wäre. Mit dem Datensatz *"Comparative Parliamentary Democracy Data Archive"* (Strøm et al. 2008), welcher gerade für diesen Sammelband zusammengestellt wurde, lag dieser Datensatz jetzt vor.
+Schließlich kommt er drittens noch auf das generell diesem Sammelband inhärente Konzept der Kosten-Nutzen-Rechnung der Akteure zu sprechen, welche auch er in sein Modell einbinden wollte (Saalfeld 2008, S. 328f.).
+
+Sein Erkenntnisinteresse bezog sich dabei nun nach Lupia und Strøm (2008) auf den Einfluss verschiedener struktureller, institutioneller, auf der Präferenz von Akteuren basierter und verhandlungstheoretischer Variablen, sowie kritischer exogener Ereignisse auf die Wahrscheinlichkeit der Regierungsbeendigung.
+
+## Theorie-Background Saalfelds
+Um auf seinen theoretischen Hintergrund genauer zu sprechen zu kommen, bezieht Saalfeld zunächst einen breiteren Exkurs in die bisherige Forschung und deren Ergebnisse mit ein. Hier merkt er zunächst die Perspektive derjenigen an, welche als Vorgehensweise bei der Erforschung von Regierungsstabilität die gleichen Variablen theoretisch rechtfertigten, wie bei der Regierungsbildung zuvor schon. Dem gegenüber weist er jedoch auch auf die Position der Critical Events-Theorie hin, welche von einem zeitkonstanten Risiko für Regierungsbeendigung ausgeht. Demnach würden diese also aus der Wirkung exogener Schocks heraus beendet werden. (vgl. Saalfeld 2008, S. 332f.)
+
+Saalfeld gibt jedoch gegenüber der Critical Events-Perspektive zu bedenken, dass gerade diese Annahme der Zeitkonstanz des Beendigungsrisikos bereits als widerlegt gilt (er verweist auf Warwick 1994) und zeigt dies auch selbst nochmals graphisch (Saalfeld 2008, S. 338). Damit kann nicht davon ausgegangen werden, dass das Beendigungsrisiko für eine Regierung zu jeder Zeit gleich hoch ist.
+
+Mit Blick auf das zweite Kapitel des Sammelbands (Lupia/Strøm 2008), in dem auch für eine Kombination der bereits angesprochenen Faktoren von Struktur, Präferenzen der Akteure, institutionellen Gegebenheiten und auch kritischer Ereignisse geworben wurde, übernimmt auch Saalfeld diese Herangehensweise.
+
+## Methodik Saalfelds
+
+Für die methodische Umsetzung seines Vorhabens wählte Saalfeld bezüglich des Forschungsdesigns die Herangehensweise eines *competing risks*-Designs mit Hilfe der ereignisanalytischen Methode der *Cox-Proportional-Hazards*-Modelle. Bei diesem Forschungsdesign wird, anstatt eines gemeinsamen Beendigungsrisikos von Regierungen insgesamt, angenommen, dass es aus theoretischer Überlegung heraus in Bezug auf Regierungsbeendigungen durch entweder *vorgezogene Neuwahlen* oder auch *Kabinettsumbildungen* unterschiedlich große Risiken des Scheiterns gibt. Die Herangehensweise über ereignisanalytische Modelle hielt Saalfeld für fruchtbarer, als über einfache Regressionsmodelle, da hier eben auch die Zeitkomponente mit dargestellt und einbezogen werden kann, worin ihm uneingeschränkt zugestimmt werden kann.
+
+Bezüglich des für diese Modelle notwendigen Zensierungs-Regimes orientierte sich Saalfeld an bestehenden Theorien (vgl. Diermeier/Stevenson 1999): für das undifferenzierte Beendigungsrisiko ("pooled hazards") wurden die Fälle nach rechts zensiert. Dies bedeutet, alle Fälle wurden zensiert, welche in den Daten zum Endzeitpunkt der Erhebung noch im Amt waren oder durch technische Gründe beendet wurden (z. B. den Tod des Premiers).
+Saalfeld zensierte weiterhin im Fall der Kabinettsumbildungen ("replacement hazards") alle Kabinette, die zeitlich aus dem Rahmen vielen, technisch beendet wurden *oder* durch vorgezogene Neuwahlen nach rechts.
+Für die vorgezogenen Neuwahlen ("early elections hazards") selbst wurden umgekehrt die gleiche Operation vorgenommen: es wurden alle zum Ende der Erhebung noch bestehenden Kabinette, sowie technische Beendigungen und Kabinettsumbildungen nach rechts zensiert. Auf diese Weise erhielt Saalfeld die für sein *competing risks*-Forschungsdesign notwendigen, einzelnen Überlebensfunktionen.
+
+## Kurz zu seinen Ergebnissen
+
+Saalfeld errechnete auf diese Weise zunächst eigenständige Modelle für die Bereiche *Jahrzehnt*, *Struktur*, *Präferenzen*, *Institutionen*, *Verhandlungen* und *kritische Ereignisse*. Die Ergebnisse dieser einzelnen Modelle wertete er anschließend hauptsächlich unter Rückgriff auf sein theoretisches Grundmodell aus dem gleichen Sammelband (vgl. Lupia/Strøm 2008) aus. Als Abschluss seiner empirischen Ergebnisse präsentierte er daraufhin noch seinen best fit (vgl. Saalfeld 2008, S. 340-341).
+
+Als Rückbezug auf seine akteurszentrierte Interpretationssichtweise erklärt er im Fazit seines Aufsatzes, dass sowohl eine bewusste Auflösungsentscheidung als auch ein Festhalten an einer Regierung und eine bewusste Entscheidung gegen diese Auflösung seitens der Akteure relevante Faktoren für die Analyse seien (vgl. Saalfeld 2008, S. 362). Dies ist im Hinblick auf vorliegende Arbeit und das Ziel, Faktoren von Stabilität und Instabilität von Minderheitsregierungen aufzudecken, eine wichtige Erkenntnis: auch hier ist eine akteurszentrierte Sicht in der Interpretation möglich.
+
+Weiterhin rechtfertigt er hier die Auswahl des theoretischen Modells von Lupia und Strøm damit, dass dieses ein dynamisches Bild zeichne, mit dem sowohl verfassungs- und damit ländertypische Spezifika, als auch strukturelle Variablen mit erfasst werden können. Weiterhin hebt er auch den Bezug des Modells auf eine Interpretation im Schlaglicht der Transaktionskosten für die Akteure hervor. Dank dieser theoretischen Interpretationsgrundlage war es ihm, um dies festzuhalten, generell erst möglich, so viele auch verschiedenartige Themenspektren in die bereits angesprochenen Blöcke zusammenzufassen und auf deren Auswirkungen auf das Regierungsscheitern zu testen - ohne dass diese als theoretisch unpassend wahrgenommen wurden. Dies veranlasst Saalfeld, generell die Perspektive des Modells Lupia/Strøm zu unterstützen und für eine Akteurszentrierung in der Interpretation zu werben (vgl. Saalfeld 2008, S. 363).
+
+## Gründe für Wichtigkeit der Untersuchung von Minderheitsregierungen
+
+Nachdem nun kurz das Forschungsdesign und die Herangehensweise Saalfelds dargelegt wurden, soll an dieser Stelle noch kurz darauf eingegangen werden, wieso es für die Forschung zu Regierungsbeendigungen von großer Bedeutung ist, sich explizit mit der Thematik der Minderheitsregierungen auseinanderzusetzen. Minderheitsregierungen werden von dieser Arbeit dahingehend verstanden, dass es sich um Kabinette von Parteien handelt, die im Parlament keine eigene dauerhafte Mehrheit haben und auf Unterstützung von Parteien von außerhalb des eigenen Kabinettes angewiesen sind. Dabei halten diese Parteien von außerhalb jedoch keine Posten innerhalb des Kabinettes (nach Crombez 1996, S. 1).
+
+Zunächst sei hier ein auf den ersten Blick pragmatischer Grund genannt: der nicht zu vernachlässigende Anteil dieser in den Daten. Bereits 1984 wies Kaare Strøm, eine Koryphäe auf dem Gebiet der Forschung zu Minderheitsregierungen und Regierungsbeendigung, zurecht darauf hin, dass eben jene einen Anteil von ungefähr 35% an Regierungen in den damals für ihn vorliegenden Daten ausmachen (Strøm 1984, S. 199). Und dieser Anteil hat sich auch aktuell nicht nennenswert verkleinert, wie aus den dieser Untersuchung zugrunde liegenden Daten hervorgeht (32,81%, vgl. Tabelle 2 im Anhang). Somit stellt diese Regierungsform weiterhin ungefähr 1/3 aller Kabinette in den Daten dar - eine nicht zu vernachlässigende Größe und damit in jedem Fall allein schon aus der rein pragmatischen Sicht auf die zur Verfügung stehenden Daten eine Untersuchung wert.
+
+Aus eher normativer Sicht wurde, wie auch bereits in der Einleitung angesprochen, an vielerlei Stellen bereits von der geringen Handlungsfähigkeit von Minderheitskabinetten gesprochen - sei diese nun wirklich gegeben oder nur von außen wahrgenommen. Zeitlich bereits weiter zurückliegend (vgl. Strøm 1984, S. 200), jedoch auch in neuerer Forschung findet sich dieses Narrativ wieder (vgl. Vowles 2010, S. 370-372). Und gerade Vowles weist darauf hin, dass dieses Performanzdefizit oftmals *wahrgenommen* wird - was jedoch ebenfalls impliziert, dass dem nicht zwingend so sein muss. Auf diesen Umstand wurde an anderer Stelle auch auf empirische Beobachtungen verwiesen: Krauss und Thürk führen das Beispiel der Regierung von Neuseeland unter Jacinda Ardern an, welche trotz ihres Minderheitsstatus auch untere externem Druck, durch beispielsweise das Coronavirus oder den Terroranschlag von Christchurch, bestehen und in ihrer Arbeit überzeugen konnte (vgl. Krauss/Thürk 2021, S. 1-2).
+
+Zuletzt sei, auch aus dem theoretischen Hintergrund von Rational Choice-Perspektiven, angemerkt, dass Minderheitsregierungen in diesem Kontext als nicht der Norm entsprechend. Aus normativer Perspektive könnte auch hier wieder argumentiert werden, dass der Regierungsanspruch ja auf der Tatsache basiere, dass die Mehrheit der wählenden Bevölkerung repräsentiert werde - bei Minderheitsregierungen, wie der Name schon sagt, ist dies nicht der Fall. Dies macht sie eigentlich auch aus koalitions- und verhandlungstheoretischer Sicht eher nicht zu einer Alternative, die Akteure - sofern man deren rationale Handlungsweise annehmen würde - durchführen würden. Auf diese Umstände wurde ebenso von Strøm hingewiesen (vgl. Strøm 1984, S. 200).
+
+Somit ergibt sich für vorliegende Arbeit, sowohl aus empirischer, als auch aus theoretischer Perspektive die Notwendigkeit, sich eingehender mit Minderheitsregierungen zu beschäftigen. Es wird dabei bewusst stark explorativ vorgegangen, weshalb hier auch nicht zwischen Ein-Parteien-Minderheitsregierungen und Koalitions-Minderheitsregierungen unterschieden werden sollte, um ein möglichst breites Datenspektrum untersuchen zu können. Saalfelds Modell von 2008, welches das Risiko des vorzeitigen Scheiterns von jeglicher Regierungsform untersuchte, erscheint in diesem Licht als geeignete Schablone, um ebenfalls auf einen auf Minderheitsregierungen bereinigten Datensatz angewendet zu werden. Die von ihm gewählte Struktur und das Forschungsdesign seiner Untersuchung, worauf bereits eingegangen wurde, erscheinen als sehr geeignet, um damit die bereits in der Einleitung aufgeworfene Frage nach Faktoren der Stabilität und Instabilität für Minderheitsregierungen explorativ zu untersuchen und so für weitere Forschung in diesem Bereich Wege aufzuzeigen.
 
 # Empirie & Untersuchung
 
+## Daten
 
-# Fazit
+Im nächsten Schritt soll in gebotener Kürze auf die in der vorliegenden Arbeit genutzten Datensätze eingegangen werden. Genutzt wurden:
 
++ einerseits die *Daten von Henning Bergmann* (2019), welche im Rahmen des besuchten Seminars zur Verfügung gestellt wurden,
++ andererseits die Daten aus dem *European Representative Democracy Data Archive (ERDDA)* aus dem Jahr 2014
+
+Diese beiden Datensätze wurden aufgrund ihrer Aktualität und einer Vielzahl für die vorliegende Untersuchung relevanten Variablen ausgewählt. Der ERDDA-Datensatz umfasst im Großen und Ganzen beinahe identische Variablen, wie der von Saalfeld 2008 genutzte CPD-Datensatz - jedoch ist er mit aktuelleren Informationen bestückt.
+Für die Untersuchung selbst wurden diese beiden zu einem gemeinsamen Datensatz verschmolzen, welcher dann wiederum im Hinblick auf die Minderheitsregierungen gefiltert wurde. Dies wurde über einen 1:1-merge-Befehl und die Identifikationsvariable "cab_code", welche den einzigartigen Kabinettscode eines Regierungskabinetts beinhaltet, durchgeführt.
+
+Daraufhin wurde der Datensatz auf die im Mittelpunkt des Forschungsinteresses stehenden Minderheitsregierungen gefiltert. Es zeigte sich hier, dass zur Analyse von ursprünglich 640 beobachteten Regierungen im kombinierten Datensatz im Zeitverlauf 207 Minderheitsregierungen als Untersuchungsgegenstände übrig blieben. Dies kann als eine für die Analyse ausreichend große Fallzahl gesehen werden. Darüber hinaus wurde überprüft, ob sich im Datensatz sogenannte "non-partisan cabinets", also Übergangskabinette befinden, jedoch waren in den 207 bereits herausgefilterten Minderheitsregierungen keine mehr davon vorhanden.
+
+## Methodik, Vorgehensweise bei der Untersuchung
+
+Das Ziel vorliegender Arbeit wird es nun sein, Gemeinsamkeiten und Unterschiede im Kontrast zu Saalfelds Modell herauszuarbeiten. Die Fragen, die sich in diesem Kontext gestellt werden, sind vor allem, wie diese im Vergleich zum "Vorbild"-Modell aussehen, wenn *einzig Minderheitsregierungen* die grundlegenden Daten ausmachen.
+Um Vergleichbarkeit zwischen dem Vorbild des Modells von Saalfeld 2008 und den hier geschätzten Modellen zu erreichen, wurde sich logischerweise ebenfalls für die ereignisanalytische Methode der Cox Proportional Hazards-Modelle entschieden. Da in vorliegender Arbeit nur ein pooled hazards-Modell geschätzt wurde, wurden die Daten auch nur für diese Form nach rechts zensiert.
+
+Am Forschungsdesign selbst wurde darüber hinaus grundlegend nichts verändert - jedoch werden in der vorliegenden Analyse einzig die "pooled hazards" für die untersuchten Kabinette untersucht. Grundsätzlich wäre zwar auch hier ein "competing risks"-Design möglich gewesen, dieses wurde aber auch mit Blick auf die geringeren Fallzahlen für Minderheitsregierungen und den zu wahrenden Rahmen für diese Arbeit nicht durchgeführt.
+
+Um die Modellvoraussetzungen zu überprüfen, werden für jedes in der Analyse gerechnete Modell ebenfalls auch die Schoenfeld-Residuen berechnet, um Aussagen über die Proportional Hazards Assumption treffen zu können. Nur wenn bei diesem Test alle in einem Cox-Modell einbezogenen Variablen einen p-Wert > 0.05 aufweisen konnten, d. h. nur bei einem insignifikanten Test für die Proportional Hazards Assumption bei allen Variablen in einem Modell, konnte die Nullhypothese, die PH-Assumption liege nicht vor, abgelehnt werden und das Modell konnte so bestehen bleiben (Grambsch/Therneau 1994). Hierfür wurde auch das Paket *"survival"* in R genutzt, welches von Terry Therneau selbst erstellt wurde und regelmäßig verbessert und aktualisiert wird.
+
+Ebenso wurden, um schon vorher auf diese Problematik einzugehen, für jedes gerechnete Modell sogenannte "Heatmaps" erstellt, welche die Korrelation der Variablen untereinander darstellen. Diese sind als Graphiken im Anhang beinhaltet. Der [Online-Appendix](https://github.com/FWisniewski44/CabTerm/tree/newLib_test) der Arbeit enthält R-Code für eine interaktive Version dieser Heatmaps, welche zur schnellen Determinierung der Korrelationsmaße enorm hilfreich sind. Auf Grundlage dieser wurden dann, sofern dies der Fall war, hoch miteinander korrelierende Variablen so behandelt, dass immer eine dieser Variablen ausgeschlossen werden sollte. Dabei wurde sich immer für diejenige entschieden, für die ein geringeres Erklärungspotential oder eine geringere theoretische Kongruenz mit den Erklärungsmustern im Hinblick auf das zu rechnende Modell zu erwarten gewesen wäre.
+Eine gewisse Vergleichbarkeit der Modelle am Schluss (auch in Relation zum best fit) kann zusätzlich durch die Angabe der AIC-Werte erreicht werden.
+
+<!-- Um Aussagen über die Faktoren von Stabilität oder Instabilität treffen zu können, wurde sich für in der Analyse für ein ereignisanalytisches Vorgehen entschieden. -->
+
+<!-- Innerhalb dieses Bereiches wurde sich für die Cox Proportional Hazards Modelle entschieden: aus den Ergebnissen dieser lässt sich zum Schluss gut herauslesen, welche Faktoren es sind, die letztlich *signifikant* etwas über die Stabilität oder Instabilität der Minderheitsregierungen aussagen können. Dies wird anhand der Hazard Ratios geschehen. -->
+
+<!-- Um die Modellvoraussetzungen zu überprüfen, werden für jedes in der Analyse gerechnete Modell ebenfalls auch die Schoenfeld-Residuen berechnet, um Aussagen über die Proportional Hazards Assumption treffen zu können. Nur wenn bei diesem Test alle in einem Cox-Modell einbezogenen Variablen einen p-Wert > 0.05 aufweisen konnten, d. h. nur bei einem insignifikanten Test für die Proportional Hazards Assumption bei allen Variablen in einem Modell, konnte die Nullhypothese, die PH-Assumption liege nicht vor, abgelehnt werden und das Modell konnte so bestehen bleiben (Grambsch/Therneau 1994). -->
+
+<!-- Ebenso wurden, um schon vorher auf diese Problematik einzugehen, für jedes gerechnete Modell sogenannte "Heatmaps" erstellt, welche die Korrelation der Variablen untereinander darstellen. Hierbei wurden dann, sofern dies der Fall war, hoch korrelierende Variablen so behandelt, dass immer eine dieser Variablen ausgeschlossen werden sollte. Dabei wurde sich immer für diejenige entschieden, für die ein geringeres Erklärungspotential im Hinblick auf das zu rechnende Modell zu erwarten gewesen wäre. -->
+
+## Ergebnisse aus den gerechneten Modellen
+
+Nun soll in diesem Abschnitt auf die gerechneten Modelle selbst eingegangen werden. Um dem Vorbild des Modells von Saalfeld von 2008 zu folgen, wurden, wie bereits in Abschnitt 2.1 zu eben jenem Modell erklärt, für die Bereiche *Struktur*, *Präferenzen*, *Institutionen*, sowie und *Bargaining* und *kritische (exogene) Events* einzelne Modelle gerechnet - mit der Ausnahme der Variablen *discr2019* und *abs_dur*, aus welchen, wie bereits zuvor erwähnt, die Überlebensfunktion gerechnet wurde und mit dem Unterschied, dass die Daten sich rein auf Minderheitsregierungen bezogen. Dafür wurden jedes Mal erneut vom gesamten Datensatz abgespaltene Subsets mit den in den Bereichen fraglichen Variablen verwendet. In Kongruenz zu Saalfeld folgt zum Schluss außerdem noch ein *best fit-Modell*, welches technisch mit einer schrittweisen Errechnung in R unter Orientierung am niedrigsten möglichen AIC-Wert errechnet wurde.
+
+Bei der Diskussion der Modelle wird nun wie folgt vorgegangen: die jeweiligen signifikanten errechneten Koeffizienten in den Modellen dieser Arbeit werden selbstverständlich für sich selbst stehend im Hinblick auf die Auswirkungen für die Stabilität oder Instabilität von Minderheitsregierungen interpretiert. Jedoch wird dies darüber hinaus auch im Vergleich und Rückblick zu den bereits vorhandenen Forschungsergebnissen von Strøm, aber vor allem Saalfeld, geschehen. Bezüglich des Signifikanzniveaus der Variablen im Modell muss noch angemerkt werden, dass vorliegende Arbeit etwas strenger vorgeht, als Saalfeld bei seinem Modell von 2008: während damals als Grenzwert 0,10 angenommen wurde, nimmt diese Arbeit das gängige Signifikanzniveau von 0,05 an.
+
+
+### Modell 1: Struktur
+
+Zunächst nun also zum ersten Modell vorliegender Arbeit, welches sich mit den Variablen aus dem Bereich *"Struktur"* beschäftigt. Wie schon bei Saalfeld fielen in diesen Bereich Variablen, die sich mit der strukturellen Beschaffenheit der untersuchten Regierungen selbst, aber auch der parlamentarischen Umgebung, in der diese sich bewegen. Für das Modell wurden in den Betrachtungsdatensatz die folgenden Variablen aufgenommen:
+
++ der Sitzanteil der Regierungspartei(en) im Parlament (*cab_seat_share*),
++ ob ein Kabinett eine Koalition ist (*coal_cab*),
++ die Anzahl der Kabinettsparteien (*num_cabparties*),
++ ob die Partei mit der größten Verhandlungsmacht im Kabinett vertreten war (*max_bargpow_cab*),
++ die maximal mögliche Regierungsdauer (*max_poss_dur*),
++ die effektive Anzahl von Parteien im Kabinett (Laakso/Taagepera 1979, *effec_parties_parl*).
+
+Diese wurden dann, bevor ein Modell geschätzt wurde, auf Korrelationen untereinander getestet. Dabei wurde eine sehr hohe Korrelation der Variablen *coal_cab* und *num_cabparties* entdeckt (0.84). Daraufhin wurde sich dazu entschlossen, die Variable *coal_cab* aus der Modellschätzung auszuschließen. Theoretisch gerechtfertigt werden kann dies dadurch, dass durch *num_cabparties* bereits eine Variable für die Anzahl an Kabinettsparteien beinhaltet ist und, dass bereits im Ursprungs-Datensatz sowohl Ein-Parteien-Minderheitsregierungen, als auch Koalitions-Minderheitsregierungen beinhaltet sind; daher wurde sich von der Variable über die Anzahl der Kabinettsparteien mehr Erklärungskraft erhofft.
+
+Nach dem Ausschluss der hoch korrelierenden Variablen wurde das erste Cox Proportional Hazards-Modell für den Bereich der Strukturvariablen durchgerechnet, welches nun folgende Ergebnisse lieferte:
+
+```{r subset structure && model fit part 1: struture, echo=FALSE, message=FALSE, warning=FALSE, paged.print=TRUE}
+# sbStructure
+sbStructure <- subset(BergmannERDDA.f, select = c("discr2019", "abs_dur", "cab_seat_share",
+                                                  "num_cabparties", "max_bargpow_cab",
+                                                  "max_poss_dur", "effec_parties_parl"))
+
+# model for structural vars
+coxPH.STR <- coxph(data = sbStructure, Surv(time = sbStructure$abs_dur, event = sbStructure$discr2019, type = "right") ~ . - abs_dur - discr2019)
+
+logLik(coxPH.STR)
+extractAIC(coxPH.STR)
+summary(coxPH.STR)
+cox.zph(coxPH.STR)
+car::vif(coxPH.STR)
+```
+
+Aus den Ergebnissen wird zunächst ersichtlich, dass der AIC-Wert des Modells 1243 beträgt. Dies ist zur Vergleichbarkeit mit den anderen Bereichen im Hinterkopf zu behalten. Ebenso wurden die Varianzinflationsfaktoren (VIFs) geprüft - auch hier befinden sich alle Werte in einem annehmbaren Bereich von unter 10. Für das Struktur-Modell kann ebenso die Proportional Hazards-Annahme als wahr angenommen werden, da beim entsprechenden Test alle Werte insignifikant waren.
+
+Weiterhin fällt in der Betrachtung der Signifikanzwerte für die einzelnen untersuchten Variablen auf, dass die *maximal mögliche Regierungsdauer* und auch die *Anzahl effektiver Parteien im Parlament* beide deutlich nicht signifikant und damit nicht interpretierbar sind.
+Sehr wohl zu interpretieren sind dagegen die Werte der Variablen *Sitzanteil der Regierungspartei(en) im Kabinett* (hazard ratio: 0,96), *Anzahl der Kabinettsparteien* (1,4) und, ob die *Partei mit der größten Verhandlungsmacht Teil der Regierung* ist (1,8) - hier liegen die passenden p-Werte von p > 0,05 vor.
+
+Für den Sitzanteil der Regierungsparteien kann konstatiert werden, dass das Risiko einer vorzeitigen Regierungsbeendigung um 4% sinkt, wenn der Sitzanteil des Kabinettes um einen Prozentpunkt ansteigt. Eine Erklärung hierfür ist im Kontext der Minderheitsregierungen insofern schlüssig: wenn eine Minderheitsregierung, die beispielsweise nur aus einer einzelnen Partei bestehen mag, im Parlament das Regierungskabinett bildet und deren Sitzanteil steigt, so wird mit fortdauerndem Anstieg dieses Anteils die Wahrscheinlichkeit des Scheiterns immer geringer.
+Saalfeld griff in seiner Analyse hier auf die Hypothese zurück, dass auch die Wahrscheinlichkeit für Neuwahlen sinkt, wenn der Sitzanteil einer Regierung insgesamt sich vergrößert - dies jedoch im speziell britischen Fall von Ein-Parteien-Regierungen (Smith 2004, S. 87). Saalfelds Modell zeigte hier keine signifikanten Werte, weder insgesamt, noch für die beiden speziellen Beendigungsrisiken (Saalfeld 2008, S. 346). Da diese Beendigungsform zwar nicht explizit in dieser Arbeit erfasst wurde, jedoch unter das pooled hazards-Design gefasst werden kann, würde diese Arbeit jedoch dazu tendieren, die Hypothese, neben wie von Smith für Ein-Parteien-Regierungen, auch für Minderheitsregierungen als bestätigt anzusehen. Somit wäre hierin ebenfalls bereits ein Stabilisierungsfaktor identifiziert.
+
+Dagegen kann für die Anzahl der Kabinettsparteien und dafür, ob die Partei mit der größten Verhandlungsmacht Teil der Regierung ist, ausgesagt werden, dass dies Faktoren sind, die die Wahrscheinlichkeit eines vorzeitigen Regierungsscheiterns erhöhen.
+Für erstere wird aus dem Modell ersichtlich, dass mit einer zunehmenden Anzahl von Parteien im Kabinett auch das Regierungsscheitern wahrscheinlicher wird. Für jede neue Partei, die in ein Kabinett in Minderheitssituationen hinzukommt, erhöht sich die Wahrscheinlichkeit für vorzeitige Regierungsbeendigungen um 40,6%. Für letztgenannte Variable ist dieser Effekt sogar noch stärker vertreten, es kommt zu einer um 81,3% erhöhten Scheiterwahrscheinlichkeit.
+Für *num_cabparties* steht diese Beobachtung nahezu im Einklang mit denen bei Saalfeld: auch in dessen Modell wird deutlich, dass ein das Risiko erhöhender Effekt besteht. Saalfeld begründet dies daraufhin mit seiner verhandlungstheoretischen Perspektive: je mehr Parteien in einem Kabinett beinhaltet sind, desto schwieriger kann sich Konsensfindung untereinander gestalten - erhöhte Scheiterwahrscheinlichkeit sei also nicht auszuschließen (Saalfeld 2008, S. 346).
+Im Falle der Variable *max_bargpow_cab* ergibt sich aus der modellvergleichenden Perspektive ein etwas anderes Bild. Diese Variable ist in Saalfelds Untersuchung nicht signifikant - in vorliegender jedoch schon, was sie zu einem im Fall von Minderheitsregierungen ausschlaggebenden Faktor macht. Vorliegende Analyse zeigt klar deren das Scheiterrisiko erhöhenden Effekt, welcher statistisch signifikant und quantitativ gesehen sehr hoch ist. Im Gegenteil dazu steht Saalfeld, welcher für diese Variable in den Vorüberlegungen zunächst einen das Risiko vermindernden Effekt annimmt (Saalfeld 2008, S. 344-345; unter Rückgriff auf Argumentation von van Roozendaal 1997, S. 77-78). Dieser Effekt konnte von ihm im reinen Strukturmodell so auch beobachtet werden, jedoch rein im Fall der vorgezogenen Neuwahlen, während die restlichen Terminierungsrisiken insignifikante Werte auswiesen.
+
+Richtet man den Blick auf den später gerechneten best fit, so wird ersichtlich, dass die Signifikanz des Sitzanteils der Kabinettsparteien (*cab_seat_share*) auch dort erhalten bleibt und diese Variable somit auch dort vertreten ist. Neu hinzu kommt aus dem Strukturbereich später ebenso die hier noch insignifikante Variable der effektiven Parteien im Parlament *effec_parties_parl*.
+
+### Modell 2: Präferenzen
+
+Nun zum zweiten themenspezifischen Modell, welches Variablen enthält, die sich vor allem auf die Präferenzen der jeweiligen Akteure beziehen. Zunächst wieder eine Auflistung und kurze Erklärung dieser:
+
++ die "preference range" eines Kabinettes, codiert nach Daten des Manifesto Projects (*pref_range*)
++ ob die Medianpartei Teil eines Kabinettes ist (*median_party_cab*)
++ ob es sich um ein konservatives Kabinett handelt (*cons_cab*)
++ ob es sich um ein sozialistisches Kabinett handelt (*soc_cab*)
++ ob es sich um ein "connected cabinet" handelt, d. h. ob ideologische Kongruenz vorliegt (*connected_cab*)
+  + dabei wurden hier auch Ein-Parteien-Kabinette als connected angesehen
++ die "preference range" des gesamten Parlamentes, ebenfalls nach Manifesto Project-Daten codiert (*parl_pref_range*)
++ ein Polarisierungsmaß, welches nach der Verhandlungsmacht der Parteien gewichtet wurde (*polar_barg_power*)
++ der Sitzanteil von Anti-System-Parteien als Proxy-Maß für den Sitzanteil von extremen Parteien (*antisys_seat*)
+
+Erneut wurde zuvor auf etwaige Korrelationen zwischen den Variablen im Untersuchungsdatensatz getestet. Dabei wurde mit Hilfe der Korrelationsmatrix und der erwähnten Heatmaps ein hoher Wert (0,81) für die Variablen *parl_pref_range* und *polar_barg_power* nachgewiesen, woraufhin letztere ausgeschlossen wurde. Gerade mit Hinblick auf die Zentrierung der Untersuchung von Minderheitsregierungen erschien es sinnvoller, die preference range des gesamten Parlaments ebenfalls mit zu beinhalten, da diese für die Arbeit solcher Regierungen mehr Aussagekraft besitzt, die sich immer wieder neue Mehrheiten suchen und dabei in Verhandlungen zu anderen Parteien treten müssen.
+
+Das dahingehend bereinigte und nun gerechnete Modell ergibt somit folgende Werte:
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=TRUE}
+# sbPreferences
+sbPreferences <- subset(BergmannERDDA.f, select = c("discr2019", "abs_dur", "pref_range",
+                                                  "median_party_cab", "cons_cab", "connected_cab",
+                                                  "soc_cab", "parl_pref_range", "antisys_seat"))
+
+# model fit for part II: PREFERENCES 
+coxPH.PREF <- coxph(data = sbPreferences, Surv(time = sbPreferences$abs_dur, event = sbPreferences$discr2019, type = "right") ~ . - abs_dur - discr2019)
+
+logLik(coxPH.PREF)
+extractAIC(coxPH.PREF)
+summary(coxPH.PREF)
+cox.zph(coxPH.PREF)
+car::vif(coxPH.PREF)
+```
+
+Zunächst wieder zu den Rahmenbedinungen im Modell: es wurde zuerst ein leicht verminderter AIC-Wert im vergleich zum Struktur-Modell festgestellt (1204). Die Werte im Bereich der VIFs und auch die beim Test auf das Vorliegen der Proportional Hazards sind auch hier positiv.
+
+Bei der Betrachtung der Signifikanzwerte wird sichtbar, dass sowohl *pref_range*, als auch *median_party_cab* und *connected_cab* keine statistische Signifikanz aufweisen.
+Dagegen liegen sowohl für *cons_cab* (hazard ratio: 0,59), als auch für *soc_cab* (0,40) und *antisys_seat* (1,01) p-Werte von p < 0,05 vor, womit diese problemlos interpretiert werden können. Für *parl_pref_range* ergibt sich ein p-Wert von 0,06, also knapp über dem festgelegten Signifikanzniveau dieser Arbeit.
+
+Bei der Interpretation befinden sich sowohl die Werte für ein konservatives, als auch für ein sozialistisches Kabinett auf einer Linie mit Saalfelds Werten, wenn man sich die Richtung des Risikos ansieht. Für konservative Minderheitsregierungen sinkt die Wahrscheinlichkeit des vorzeitigen Regierungsscheiterns um 41%, verglichen mit Minderheitsregierungen eines anderen Typus. Im Falle von sozialistischen Kabinetten ist dieser Wert mit 60% im Vergleich zu Minderheitsregierungen eines anderen Typus sogar noch größer. Gerade der Fall sozialistischer Kabinette ist dieser Wert stark statistisch signifikant (0,00019). Diese Regierungsform kommt bei Minderheitsregierungen (so zum Beispiel in den skandinavischen Fällen zu beobachten), verglichen mit konservativen Kabinetten jedoch auch öfter vor, wie aus Tabelle XXXX im Anhang zu erkennen ist.
+
+Der Befund für die Antisystem-Parteien deckt sich ebenfalls mit dem aus Saalfelds Modell: das Risiko, dass eine Minderheitsregierung frühzeitig scheitert, steigt  um 6% für jeden zusätzlichen Prozentpunkt des Sitzanteils von Antisystem-Parteien. Unterschiedlich ist hier jedoch nur die verwendete Variable, da Saalfeld auf die Variable über den Sitzanteil von extremen Parteien zurückgriff, während in vorliegender Arbeit aus Aktualitätsgründen, um auch neuere Regierungsbeendigungen auf diese Variable hin zu untersuchen, jene zum Sitzanteil von Antisystem-Parteien aus dem Datensatz von Henning Bergmann (2019) genutzt wurde. Der Anteil von Antisystem-Parteien kann ebenso als ein Teil der Komplexität des gesamten Verhandlungsraums, in dem die Akteure sich bewegen, gesehen werden (Saalfeld 2008, S. 349-350). Durch die Ergebnisse kann also konstatiert werden, dass dies auch im Fall der Minderheitsregierungen zur Komplexität der Verhandlungsumgebung beiträgt.
+
+Angemerkt werden muss hier jedoch, dass dies nur für die isolierte Betrachtung des Präferenzen-Modells gilt. Bei der Berechnung des best fit ist keine der hier signifikanten Variablen mehr vertreten. Stattdessen jedoch ist die Variable *parl_pref_range* in diesem Modell signifikant. Auf diese Variable wird im dortigen Kontext dann weiter eingegangen werden.
+
+### Modell 3: Institutionen
+
+Im dritten Bereich wurde ein Modell geschätzt, in welchem Variablen einbezogen wurden, die besonders die institutionellen Rahmenbedingungen, in denen die parlamentarischen Akteure sich bewegen, mit in den Blick nimmt. Folgende Variablen wurden beinhaltet und auf ihre Auswirkungen auf das Scheiterrisiko von Minderheitsregierungen untersucht:
+
++ das Vorhandensein von "positivem Parlamentarismus", d. h. ob es für den Antritt einer Regierung einer Mehrheit bei einer Investiturabstimmung bedarf (*invest*)
++ ob die Entscheidungen im Kabinett einstimmig getroffen werden müssen (*cabunan*)
++ wie machtvoll die Position des Premierministers ist (*pm_pow*)
++ ob ein Premierminister die Macht hat, unilateral das Parlament aufzulösen (*pm_diss_pow*)
++ ob ein Zwei-Kammern-System vorliegt (*erdda_bicam*)
++ ob ein semipräsidentielles System vorliegt (*erdda_semip*)
++ ob ein Kabinett direkt nach einer Wahl zustande kam (*post_election_cabinet*)
+
+Auch hier wurde, wie zuvor schon, der Untersuchungsdatensatz auf Korrelationen der Variablen untereinander untersucht - es konnte jedoch keine Korrelation von über 0,8 festgestellt werden, sodass keine Variable ausgeschlossen werden musste.
+
+```{r institutions model (3), echo=FALSE, message=FALSE, warning=FALSE, paged.print=TRUE}
+# sbInst
+sbInstit <- subset(BergmannERDDA.f, select = c("discr2019", "abs_dur", "invest",
+                                               "cabunan", "pm_pow",
+                                               "pm_diss_pow", "erdda_bicam", "erdda_semip",
+                                               "post_election_cabinet"))
+
+# model fit for part III: INSTITUTIONS
+coxPH.INST <- coxph(data = sbInstit, Surv(time = sbInstit$abs_dur, event = sbInstit$discr2019, type = "right") ~ . - abs_dur - discr2019 - pm_pow - pm_diss_pow)
+
+logLik(coxPH.INST)
+extractAIC(coxPH.INST)
+summary(coxPH.INST)
+cox.zph(coxPH.INST)
+car::vif(coxPH.INST)
+```
+
+Für den AIC-Wert wurde für dieses Modell ein Wert von 888 festgestellt, im Vergleich zu den vorherigen Modellen der bisher niedrigste. Beim Test auf die Proportional Hazards-Annahme wurde jedoch festgestellt, dass sowohl die Variablen *pm_pow* und *pm_diss_pow* diese verletzen, weshalb sie aus dem Modell ausgeschlossen werden mussten. Bei den verbleibenden vier Variablen befanden sich die Werte hierfür und auch für die VIF-Faktoren jedoch im annehmbaren Bereich, sodass mit diesen das Modell gerechnet werden konnte.
+
+Beim Blick auf die Signifikanzwerte wird deutlich, dass für die Variablen *invest* und für *erdda_bicam* keine Interpretierbarkeit gegeben ist, da diese statistisch insignifikant sind. Gerade im Fall des positiven Parlamentarismus ist dieser Befund interessant - hier wäre es mit der Hypothese Bergmans durchaus auch denkbar gewesen, dass durch den Mechanismus, dass eine Regierung vor Amtsantritt explizit durch ein Investiturvotum bestätigt werden müsste, eine erhöhte Scheiterwahrscheinlichkeit gerade für Minderheitskabinette ergeben hätte können (vgl. Bergman 1993, S. 55-57) - dem ist jedoch empirisch gesehen hier nicht so. Hier wären in jedem Fall tiefgreifendere Untersuchungen notwendig, um noch mehr auf kausale Mechanismen hierzu eingehen zu können.
+Es können jedoch sowohl *cabunan* (2,12) als auch *erdda_semip* (2,50) interpretiert werden, da sie hochsignifikante Werte enthalten. In beiden Fällen wird aus den hazard ratios ersichtlich, dass es sich um das Scheiterrisiko sehr stark erhöhende Variablen handelt, wenn sich mit Minderheitsregierungen beschäftigt wird. Auch die Variable *post_election_cabinet* (0,50) weist einen statistisch signifikanten Koeffizienten auf.
+Auch in Saalfelds Modell sind die Werte der hazard ratios für diese Variablen sehr hoch (1,43 bzw. 3,87), wenn auch angefügt werden muss, dass für *cabunan* im dortigen institutionellen Modell kein signifikanter Wert vorliegt. Dennoch geht der Effekt in die gleiche kausale Richtung, lässt man für einen Moment die Signifikanzen außer Acht.
+
+Hierbei scheint es auch für Minderheitsregierungen den kausalen Zusammenhang zwischen Einstimmigkeitsregel in Koalitionen und Scheiterwahrscheinlichkeit zu geben - betrachtet man isoliert nur institutionelle Variablen. Akteure versuchen generell, die Transaktionskosten innerhalb der Koalition möglichst gering zu halten. Durch die Einstimmigkeit jedoch wird dies nicht unwesentlich erschwert (vgl. Saalfeld 2008, S. 355). Gerade auch für Minderheitsregierungen, welche ohnehin immer kompromissbereit sein müssen (sei es als Minderheitskoalition oder Ein-Parteien-Minderheit), ist dieser Faktor logischerweise ausschlaggebender, als für andere Regierungsformen. So kann beispielsweise auch durch vorgezogene Neuwahlen oder durch Kabinettsumbildungen ein neuer Regierungspartner gefunden werden, eventuell auch, um die eigene Handlungsfähigkeit zu erhöhen.
+
+Das erhöhte Scheiterrisiko im Falle semi-präsidentieller Systeme ließe sich unter Rückgriff auf die Vetospieler-Theorie von Tsebelis erklären: durch Einbezug von mehr Vetospielern in ein System entstehen auch mehr Reibungspunkte, was auch zu politischem Stillstand oder Interessenskonflikten zwischen den Akteuren führen kann. Macht dann ein Vetospieler, wie beispielsweise ein Präsident mit starken Auflösungsmöglichkeiten für das Parlament oder die Regierung, von seinen Befugnissen gebrauch, kann sich das auf das Scheiterrisiko von Regierungen im Allgemeinen auswirken (vgl. Tsebelis 2002, S. 215ff.). Wenn also Interessensdifferenzen zwischen dem Präsidenten und der Regierung bestehen, so kann es in diesem Fall auch zu einer erhöhten Scheiterwahrscheinlichkeit auch für diese Regierungsform kommen.
+Weiterhin kann von Kabinetten, die unmittelbar nach einer regulären Wahl zustande kamen, eine höhere Stabilität erwartet werden, als von jenen, die während einer Legislaturperiode durch Neuwahlen oder Umbildungen geformt werden bzw. werden mussten. Diermeier und Stevenson sprachen dieses Phänomen bereits 1999, auch unter Bezugnahme auf Arbeiten von Paul Warwick an. Sie sehen in dieser Variable ebenfalls größere Wichtigkeit für vorzeitige Neuwahlen zu späteren Zeitpunkten in der Legislaturperiode (Diermeier/Stevenson 1999, S. 1061-1064). 
+
+Es muss hier jedoch angemerkt werden, dass im abschließenden Modell dieser Arbeit weder die Variable *erdda_semip*, noch die Variable *cabunan* signifikante Werte aufweisen. Hingegen ist dort die Variable *post_election_cabinet* erneut signifikant vertreten. Im best fit neu vertreten ist aus dem Bereich der institutionellen Variablen ebenfalls die Variable zum Zwei-Kammern-System, *erdda_bicam*.
+
+<!-- Was jedoch in jedem Fall konstatiert werden kann, ist, dass auch im Fall von Minderheitsregierungen diese beiden Variablen das Scheiterrisiko sehr stark erhöhen. Kabinette in semi-präsidentiellen Systemen scheitern mit einer um 150% erhöhten Wahrscheinlichkeit vorzeitig im Vergleich mit Systemen ohne dieses Merkmal, während Kabinette mit Einstimmigkeitsprinzip im Vergleich zu Kabinetten ohne dieses mit einer um 112% erhöhten Wahrscheinlichkeit vorzeitig scheitern. Hier decken sich also die Befunde zwischen Minderheitsregierungen und allen anderen in den Daten auftauchenden Regierungsformen. -->
+
+<!-- Das Scheiterrisiko für Minderheitsregierungen wird jedoch, wie auch erwartet wurde, durch den "Nachwahl-Status" von Kabinetten verringert. Kabinette, die direkt nach einer regulären Wahl zustande kamen, haben eine um 50% geringere vorzeitige Scheiterwahrscheinlichkeit, als Kabinette, die **während** einer verfassungsmäßig festgelegten Legislaturperiode geformt werden und damit näher am Ende dieser liegen. -->
+
+
+### Modell 4: Bargaining Environment
+
+Für das vorletzte thematische Modell wurde sich mit der Verhandlungsumgebung und den vorgegebenen Rahmenbedingungen für Kabinette beschäftigt, in welcher die Akteure sich bewegen. Dazu wurden die folgenden Variablen aus dem Datensatz berücksichtigt:
+
++ ob das Kabinett den gleichen Premierminister hat wie das vorherige (*same_pm*)
++ die Dauer der Koalitionsverhandlungen (*erdda_barg_dur*)
++ die maximal mögliche bzw. noch übrige Regierungsdauer (*max_poss_dur*)
++ ob es sich um ein Koalitionskabinett handelt (*coal_cab*)
+
+Bei diesen Variablen wurde erneut auf Korrelationen untereinander getestet. Es konnte dabei jedoch keine höhere Korrelation als 0,40 festgestellt werden, weshalb alle Variablen so im Modell bleiben konnten.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=TRUE}
+# sbBarg
+sbBarg <- subset(BergmannERDDA.f, select = c("discr2019", "abs_dur", "same_pm", "erdda_barg_dur", "max_poss_dur", "coal_cab"))
+
+# model fit for part IV: BARGAINING 
+coxPH.BARG <- coxph(data = sbBarg, Surv(time = sbBarg$abs_dur, event = sbBarg$discr2019, type = "right") ~ . - abs_dur - discr2019)
+
+logLik(coxPH.BARG)
+extractAIC(coxPH.BARG)
+summary(coxPH.BARG)
+cox.zph(coxPH.BARG)
+car::vif(coxPH.BARG)
+```
+
+Zuallererst wieder einige Feststellungen zum allemeinen Modell. Der Wert des AIC geht hier wieder, im Verhältnis zu den vorherigen thematisch abgegrenzten Modellen etwas nach oben (1189). Die VIF-Faktoren ergaben ebenfalls Werte im annehmbaren Bereich unter 10 und auch der Test auf die Proportional Hazards-Annahme kann als bestanden angesehen werden, da alle p-Werte hier über 0,05 lagen. Es mussten damit keine Modellanpassungen vorgenommen werden.
+
+Die Variablen *same_pm* und *coal_cab* werden in diesem Modell nicht interpretiert, da hier errechnete hazard ratios statistisch nicht signifikant sind. Es kann also kein statistisch signifikanter Einfluss auf die vorzeitige Scheiterwahrscheinlichkeit von Minderheitsregierungen angenommen werden, wenn der Premierminister sich im Vergleich zum vorigen Kabinett nicht verändert. Ebenfalls hat es keinen statistisch signifikanten Einfluss auf dieses Risiko, wenn ein Kabinett aus einer Koalition besteht oder eine Ein-Parteien-Regierung vorliegt.
+
+Dagegen weisen die Variablen *erdda_barg_dur* (1,01) und *max_poss_dur* (0,99) signifikanten Einfluss auf die Wahrscheinlichkeit vorzeitigen Regierungsscheiterns auf.
+In Bezug auf die *Dauer der Koalitionsverhandlungen* lässt sich sagen, dass dies bezüglich der Interpretierbarkeit eine gewisse Ambivalenz aufweisen kann. Wie Saalfeld zurecht anmerkt, wurde eine längere Dauer sowohl mit einer gesteigerten Aufmerksamkeit für Details der potentiellen Zusammenarbeit assoziiert (eine Annahme, die u. a. von Warwick (1994) vertreten wurde; ein Faktor, der gewährleisten könnte, dass eine Zusammenarbeit geregelter abläuft und damit das Risiko von vorzeitigen Beendigungen vermindert). Ebenso ist aber laut Saalfeld auch eine gegenteilige Interpretation dieser Variable schon vorgenommen worden: so könnte angenommen werden, dass eine längere Dauer für eine größere Komplexität des Verhandlungsumfeldes spräche (diese Ansicht sei von King et al. (1990) vertreten worden - durch diese Komplexität könne es zu einem erhöhten Risiko kommen). Er selbst merkt jedoch mit Hinblick auf das von ihm implementierte Interpretationsmodell von Lupia und Strøm (2002) an, dass solche Schlüsse nicht einfach gezogen werden könnten - stattdessen sei eine verhandlungstheoretische Interpretation, der ja auch seine gesamte Arbeit folgt, sinnvoll: es würden zahlreiche und vielschichtige Informationen in Koalitionsverhandlungen ausgetauscht, sodass die Akteure mit einem gesteigerten Informationsgehalt vorteilhaftere Bündnisse schließen könnten. Dadurch könnten nachteilige Verbindungen vermieden werden (vgl. Saalfeld 2008, S. 359).
+Im Licht dieser theoretischen Annahmen kann die Aussage getroffen werden, dass es einen kleinen, aber hoch signifikanten, negativen Effekt auf die Stabilität von Minderheitsregierungen hat, je länger die Verhandlungen dauern. Mit jedem zusätzlichen Verhandlungstag steigt das Risiko frühzeitiger Regierungsbeendigungen um ca. 1%. Somit können Aussagen wie die von Warwick und auch die verhandlungstheoretische Position Saalfelds für Minderheitsregierungen hier nicht bestätigt werden - in Saalfelds Bargaining-Modell war dieser Wert nicht signifikant und damit nicht interpretierbar. Konzentriert man sich rein auf diesen thematischen Bereich und untersucht Minderheitsregierungen, so kann also davon ausgegangen werden, dass es sich hier um einen Faktor handelt, der besonders für diese Regierungsform Relevanz aufweist.
+
+Für die *maximal noch mögliche Regierungsdauer* kann in diesem Kontext erneut die Arbeit Paul Warwicks zur Interpretation herangezogen werden. Dieser konnte nachweisen, dass keine Zeitkonstanz bei der Rate von Regierungsbeendigungen vorliegt (Warwick 1994, S. 18-19). Ebenso stellten Diermeier und Stevenson fest, dass die Rate von vorgezogenen Neuwahlen stark ansteigt, je weniger Zeit bis zur nächsten regulären Wahl verbleibt (Diermeier/Stevenson 1999, S. 1065). Der Effekt dieser Variable lässt sich in vorliegendem Modell wie folgt erklären: je länger die Zeitspanne ist, die eine Minderheitsregierung noch als mögliche Regierungsdauer hat, desto geringer ist auch das Risiko ihres vorzeitigen Scheiterns. Diese Variable wurde bisher in der Forschung schon sehr oft in Modellen beinhaltet, zuletzt in größerem Ausmaß in Untersuchungen unter Beteiligung von Svenja Krauss (vgl. Krauss 2018, Krauss/Kroeber 2020, Krauss/Thürk 2021) - mit einem konstanten Ergebnis, welches auch in vorliegender Untersuchung explizit für Minderheitsregierungen erneut (vgl. Krauss/Thürk 2021) bestätigt werden konnte.
+
+Somit konstatiert die vorliegende Arbeit, dass die Variable über die maximal noch verfügbare Regierungsdauer einen leicht positiven Effekt auf Minderheitsregierungen hat und diese stabilisieren kann, je mehr Zeit hier noch übrig ist. Für die Dauer der Koalitionsverhandlungen wird von einem destabilisierenden Faktor ausgegangen. Diese Ergebnisse treffen jedoch nur auf die isolierte Betrachtung des reinen Bargaining-Modells zu. Im Modell des best fit am Ende dieser Arbeit wird der Effekt von *max_poss_dur* die Signifikanz verlieren - während die Variable *erdda_barg_dur* zur Dauer der Koalitionsverhandlungen weiter signifikant bleibt. Neu hinzu kommt aus diesem thematischen Modell dann die Variable *same_pm*.
+
+### Modell 5: Kritische exogene Events
+
+Im letzten rein themenbezogenen Modell wurden Variablen beinhaltet, die aus dem Ansatz der kritischen exogenen Events kommen. Dieser Ansatz galt besonders Ende der 1980er und Anfang der 1990er Jahre als ein in der Forschung neu aufkommendes Paradigma. Während zuvor hauptsächlich Variablen aus den vier bereits zuvor gerechneten Modellen untersucht wurden, wurde nun argumentiert, dass auch Ereignisse von außen, also sogenannte kritische exogene Events eine Regierung in Bedrängnis bringen können und zu deren vorzeitiger Auflösung führen können. Die Perspektive A. Lawrence Lowells von 1896, eine Regierung brauche die Unterstützung aus dem Volk und internen Zusammenhalt, oder auch das Aufkommen des Rational Choice Ansatzes ab den 1960ern wurden nicht mehr als alleinige Erklärungsmechanismen hingenommen (vgl. Browne et al. 1984, S. 168-170).
+Aus diesem Grund wird auch in vorliegender Arbeit, wie im Vorbildmodell Saalfelds, im Kontext der Minderheitsregierungen auf einige Variablen getestet, die in diesem Spektrum relevant sind:
+
++ die elektorale Volatilität, d. h. der Anteil der anders abgegebenen Stimmen der Wahlberechtigten zwischen den Wahlen (*elect_volat*)
++ die prozentuale Differenz zwischen Inflationsrate zu Beginn eines Kabinettes und zum Ende, d. h. als Maß der Performanz eines jeweiligen Kabinettes in diesem Bereich (*inflation_Abs*)
++ die prozentuale Differenz zwischen Arbeitslosigkeitsrate zu Beginn eines Kabinettes und zum Ende, d. h. erneut als Maß der Performanz der jeweiligen Kabinette (*unemploy_Abs*)
+
+Darüber hinaus wurden bei Saalfeld auch zwei Interaktionseffekte mit einbezogen:
+
++ Interaktion 1 zwischen *inflation_Abs* und *cons_cab*
++ Interaktion 2 zwischen *unemploy_Abs* und *soc_cab*
+
+Diese beiden Effekte testen auf Befunde, die von bereits zuvor von Paul Warwick herausgestellt wurden (vgl. Warwick 1994, S. 75-83): nämlich, dass Kabinette mit sozialistischer Beteiligung generell weniger oft durch tendenziell schlechtere Performanz im Bereich Arbeitslosigkeit scheitern, jedoch öfter durch solche im Bereich inflation. Dem gegenüber verhält es sich bei konservativen Kabinetten genau anders herum.
+Dabei wird von Saalfeld jedoch auch darauf hingewiesen, dass es sich bei den Inflations- und Arbeistlosigkeitsvariablen um zeitlich variierende Variablen handelt, die jährlich vorlagen. In hiesiger Untersuchung wurden jedoch, wie bereits zuvor geklärt, die prozentuale Differenz zwischen Kabinettsantritt und Kabinettsende berechnet, um als Performanz-Maß zu gelten. Demnach sind die Ergebnisse in diesen beiden Bereichen, auch aufgrund von nicht exakt gleicher Datengrundlage, nicht miteinander vergleichbar.
+
+Beim Test auf Korrelationen vor der eigentlichen Modellschätzung konnte unter den Variablen keine solche festgestellt werden, die hoch genug gewesen wäre, um einen Ausschluss von Variablen aus diesem Grund zu rechtfertigen.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=TRUE}
+
+# sbCrit
+sbCrit.Abs <- subset(BergmannERDDA.f, select = c("discr2019", "abs_dur", "elect_volat", "inflation_Abs", "unemploy_Abs", "soc_cab", "cons_cab"))
+
+# model fit for part V: CRITICAL EVENTS 
+coxPH.CRIT.ABS <- coxph(data = sbCrit.Abs, Surv(time = sbCrit.Abs$abs_dur, event = sbCrit.Abs$discr2019, type = "right") ~ elect_volat + unemploy_Abs)
+
+logLik(coxPH.CRIT.ABS)
+extractAIC(coxPH.CRIT.ABS)
+summary(coxPH.CRIT.ABS)
+cox.zph(coxPH.CRIT.ABS)
+# with interaction effects, the ph assumption is not met
+# without this, it is very closely met, but nothing is significant
+
+car::vif(coxPH.CRIT.ABS)
+# with interactions, VIFs are unnaturally high
+# without interactions, VIFs are even higher...
+```
+
+Betrachtet man nun zunächst erneut die für das gesamte Modell ausgegebenen Statistiken, so fällt auf, dass der Konkordanz-Wert bei 0,517 liegt - das spricht dafür, dass durch das vorliegende Modell, im Vergleich mit den wirklichen Daten, nur 51,7% der geschätzten Werte dem wirklichen Zustand eines Kabinettes entsprachen. Somit kann hier von einer fast willkürlichen Schätzung des Modells ausgegangen werden. Der AIC-Wert beträgt dabei 1001.
+
+Weiterhin wurde beim Schätzen des Modells festgestellt, dass die Variable *inflation_Abs* die Proportional Hazards-Annahme verletzt. Demnach musste diese also ausgeschlossen werden, um die Modellvoraussetzungen für Cox Proportional Hazards-Modelle nicht zu verletzen.
+
+Jedoch konnte auch nach Ausschluss dieser Variable aus den verbleibenden beiden zu Arbeitslosigkeit und zu elektoraler Volatilität keine statistisch signifikante hazard ratio herausgelesen werden. Somit konstatiert diese Arbeit, dass die Sichtweise der kritischen exogenen Events für die Thematik der Stabilität oder Instabilität von Minderheitsregierungen wenig bis gar keinen Ausschlag gibt. Damit schließt sie sich in diesem Themenbereich dem bisherigen Kenntnissstand zum nicht vorhandenen Einfluss von Inflation und Arbeitslosigkeit an (vgl. Krauss 2021, S. 2).
+
+
+### Modell des best fit
+
+Abschließend wurde noch, wie zu Beginn angekündigt, das Modell des best fit gezeigt - d. h. das Modell, welches für die vorliegenden Daten die beste Passung aufweist. Dieses Modell wurde in R mit Hilfe der stepAIC-Funktion errechnet. Diese Funktion errechnet jenes Modell, das den niedrigsten AIC-Wert aufweist. Dieser Wert dient hier als Maß für eben jene bestmögliche Passung von nicht miteinander vernetzten Modellen auf die Daten, da in der technischen Durchführung mittels der Statistiksoftware eine einfache Vergleichbarkeit anhand des AIC-Werts vorgenommen werden kann. Es ist dafür jedoch erforderlich, dass alle mit "NA" gekennzeichneten Observationen, also alle Werte ohne Beobachtung, vor der Durchführung zunächst aus den Daten entfernt werden mussten. Die genutzten Daten entsprechen hierbei einer Kombination aus allen zuvor für die Einzeluntersuchungen erstellten Subsets. Nach entsprechender Behandlung bleiben im kombinierten Subset für den best fit von zuvor 207 Observationen für alle Minderheitsregierungen noch 135 Observationen übrig - mit diesen wurde im Folgenden weiter gearbeitet.
+
+Bevor auf die Ergebnisse eingegangen wird, soll an dieser Stelle noch kurz etwas zur Methodik, bzw. zur Vorgehensweise, bei der Verwendung der schrittweisen Ermittlung des best fit-Modells erläutert werden. Zunächst wurden, wie bereits erwähnt, alle NA-Werte ausgeschlossen. Der auf diese Weise bereinigte Datensatz wurde dann zunächst in zwei "Vormodellen" beinhaltet, die sich wie folgt zusammengesetzt haben:
+
++ ein *"Nullmodell"*: hier wurde sozusagen ein "leeres" Cox Proportional Hazards-Modell geschätzt, in welchem keine unabhängigen Variablen beinhaltet werden. Dieses Modell ist der Ausgangspunkt der Berechnung.
++ ein *"Vollmodell"*: dieses Modell beinhaltet alle in der Untersuchung der Einzelmodelle bisher verwendeten Variablen und bildet, bildhaft gesprochen, die "Obergrenze" für die durchzuführende schrittweise Berechnung.
+
+Aus diesen beiden Vormodellen, welche jeweils die Grenzen bilden, berechnet dann die angesprochene Funktion den best fit für vorliegende Daten. Dieser wurde dann aus dem Output extrahiert und wird im Folgenden, wie schon zuvor die themenspezifischen Modelle eingehender, besprochen.
+
+Außerdem wurde auch hier wieder auf Korrelationen geprüft: es wurden die Variablen *pref_range* und *coal_cab* ausgeschlossen, welche beide sehr hoch
+
+```{r config sbAll, message=FALSE, warning=FALSE, include=FALSE, paged.print=TRUE}
+# first step: generate one big subset out of the others
+sbAll <- cbind(sbBarg, sbInstit, sbPreferences, sbStructure, sbCrit.Abs)
+
+#this HAS to be executed in this order!
+## delete double discr2019 and abs_dur
+sbAll[c(7, 8, 16, 17, 25, 26, 32, 33)] <- list(NULL)
+## delete other double vars
+### max_poss_dur
+sbAll[24] <- NULL
+### soc_cab and cons_cab
+sbAll[c(28, 29)] <- list(NULL)
+
+# get rid of NAs
+sbAll <- na.omit(sbAll)
+```
+
+```{r best fit, echo=FALSE, message=FALSE, warning=FALSE, paged.print=TRUE}
+# null model and full model
+modNull <- coxph(data = sbAll, Surv(time = sbAll$abs_dur, event = sbAll$discr2019, type = "right") ~ 1)
+modFull <- coxph(data = sbAll, Surv(time = sbAll$abs_dur, event = sbAll$discr2019, type = "right") ~ . -abs_dur - discr2019)
+
+# step function for acquiring best fit
+# stepAIC(modNull, scope = list(upper = modFull), direction = "both")
+
+# best fit as object with summary and test for ph assumption
+# best fit as object with summary and test for ph assumption
+best.fit <- coxph(formula = Surv(time = sbAll$abs_dur, event = sbAll$discr2019, type = "right") ~ 
+                    erdda_bicam + effec_parties_parl + parl_pref_range + 
+                    post_election_cabinet + erdda_barg_dur + same_pm + cab_seat_share, data = sbAll)
+
+logLik(best.fit)
+extractAIC(best.fit)
+summary(best.fit)
+cox.zph(best.fit)
+car::vif(best.fit)
+```
+
+Das so mittels der step-Funktion erhaltene, am besten passende Modell wurde daraufhin extrahiert und, wie zuvor bei den Einzelmodellen auch, bezüglich des AIC-Werts (best fit bei 692), der Proportional Hazards-Annahme und der VIF-Faktoren überprüft. Für die VIF-Faktoren konnte hier festgestellt werden, dass diese sich im annehmbaren Bereich weit unter dem Grenzwert 10 befinden.
+Für die PH-Assumption konnte ebenfalls festgestellt werden, dass keine Variable die Modellvoraussetzungen verletzt.
+Das Maß für die Konkordanz, welches im vorliegenden Fall auch als Gütemaß des Modells gesehen werden kann, liegt bei 0,753. Dies bedeutet, dass vom Modell im Verhältnis zur Wirklichkeit 75,3% der Werte zutreffend vorausgesagt werden. Somit kann das Modell des best fit, welches diese Arbeit als Ergebnis vorlegt, ungefähr 3/4 der Fälle von Regierungsbeendigung im Verhältnis zur Wirklichkeit zutreffend vorhersagen. Dies kann als durchaus guter Wert angesehen werden.
+
+Nun zur Interpretation des errechneten Modells des best fit, welches das abschließende Ergebnis vorliegender Untersuchung darstellen wird. Dieses enthält nun nach der Berechnung folgende Variablen:
+
++ Liegt ein Zwei-Kammern-System vor? (*erdda_bicam*)
++ Wie viele effektive Parteien sind im Parlament vorhanden? (*effec_parties_parl*)
++ Wie groß ist die parlamentarische Preference Range? (*parl_pref_range*)
++ Handelt es sich um ein Kabinett, welches nach einer regulären Wahl zustande gekommen ist? (*post_election_cabinet*)
++ Wie lange dauerten die Koalitionsverhandlungen? (*erdda_barg_dur*)
++ Steht dem Kabinett der gleiche Premierminister vor, wie schon dem vorigen Kabinett(*same_pm*)
++ Wie groß ist der Sitzanteil des Kabinettes? (*cab_seat_share*)
+
+```{r tidy table for best fit && survival plot for estimated model, echo=F}
+tidyBestFit <- tidy(best.fit, exponentiate = T, conf.level = 0.95) %>% 
+  mutate(signif = stars.pval(p.value))
+
+kbl(tidyBestFit) %>% 
+  kable_classic()
+```
+
+Zunächst zu den **destabilisierende Faktoren für Minderheitsregierungen**. In diese Kategorie fallen, nach vorliegender Analyse, die Variablen zum Zwei-Kammern-System, zu der Anzahl effektiver Parteien im Parlament, zur Dauer der Koalitionsverhandlungen und überraschenderweise, da eher konterintuitiv, auch, ob einem Kabinett der gleiche Premierminister vorsteht, wie bereits dem vorigen.
+Dabei **erhöht** sich das Risiko des Regierungsscheiterns für Kabinette in Systemen mit *Zwei-Kammern-System* um 230%, im Vergleich zu Systemen ohne diesen Wesenszug und wenn für die anderen Variablen im Modell kontrolliert wird. Für jede weitere im System vorhandene *effektive Partei* nach dem Index von Laakso und Taagepera erhöht sich außerdem das Scheiterrisiko um 71%, ceteris paribus. Für jeden weiteren Tag, den *Koalitionsverhandlungen länger dauern*, erhöht sich das Risiko des Scheiterns um zusätzlich 1%, ceteris paribus. Außerdem erhöht sich das Risiko um 115%, wenn einem Parlament der *gleiche Premierminister* vorsteht, wie bereits dem vorherigen Parlament und wenn für alle anderen Variablen im Modell kontrolliert wird.
+
+Die Befunde zum Zwei-Kammern-System spiegeln nicht nur Saalfelds Modell (vgl. Saalfeld 2008, S. 340-341) wider, welcher auch einen stark destabilisierenden Zusammenhang für diese Variable nachweisen konnte. So finden sich beispielsweise auch in einer Untersuchung Bergman et al. (2015) für West- und Osteuropa im Vergleich wieder (vgl. Bergman et al. 2015, S. 364-366). Gleiches konnten auch Schleiter und Morgan-Jones nachweisen (vgl. Schleiter/Morgan-Jones, S. 505-508). Diese Arbeit konnte jedoch zeigen, dass die bisherigen Befunde hierzu auch für Minderheitsregierungen gelten. Interessant ist hier anzumerken, dass im speziell die Institutions-Variablen beinhaltenden Modell noch keine signifikanz für *erdda_bicam* vorlag - stattdessen jedoch für semi-präsidentielle Systeme (*erdda_semip*), welche nun im best fit jedoch nicht mehr beinhaltet wurden. Erklärbar wäre dieser Zusammenhang jedoch aus dem gleichen theoretischen Hintergrund der Vetospieler-Theorie (nach Tsebelis 2002, S. 143ff.).
+
+Wie aktuell auch Walther und Hellström mittels einer Extreme Bounds Analyse aufzeigen, hat die Anzahl effektiver Parteien einen robusten Einfluss auf die Regierungsdauer in Mittel- und Osteuropa (vgl. Walther/Hellström 2021, S. 15-16). Vorliegende Arbeit konnte ebenfalls einen das Risiko erhöhenden Einfluss dieser Variable im Falle der Analyse von Minderheitsregierungen im abschließenden Modell feststellen. Mögliche Erklärungsansätze hierfür finden sich bereits in der Literatur: so erkennen Bergman, Ersson und Hellström bei der Untersuchung von Regierungen in Mittel- und Osteuropa in einer erhöhten Komplexität der Verhandlungsumgebung einen Grund dafür dass Regierungen instabiler werden - gleichbedeutend mit einem erhöhten Risiko der vorzeitigen Regierungsbeendigung für Minderheitsregierungen (vgl. Bergmann et al. 2015, S. 364). Dieses komplexere Verhandlungsumfeld kann ohne Zweifel unter anderem eben auch durch eine Erhöhung der Anzahl der dort vorhandenen effektiven Parteien herbeigführt werden.
+
+Weiterhin konnte auch im best fit festgestellt werden, dass mit zunehmender Verhandlungsdauer für Koalitionen auch das Risiko vorzeitigen Regierungsscheiterns zunimmt. Diese Variable war bereits bei der Untersuchung im vierten Modell zum Thema der Verhandlungen und des Verhandlungsumfeldes signifikant, mit dem gleichen negativen Einfluss auf die Stabilität von Minderheitsregierungen. Zur Interpretation dieser wird daher an dieser Stelle auf den Absatz in diesem vierten Modell verwiesen, da sich daran nichts geändert hat.
+
+Als letzter Instabilitätsfaktor für Minderheitsregierungen erweist sich im best fit noch die Variable *same_pm* - also ob der gleiche Premierminister bzw. das gleiche Kabinett eine Regierungszusammenarbeit nach einer Wahl fortführen. Die starke Erhöhung des Risikos in diesem Bereich war zuvor theoretisch bedingt nicht erwartet worden, da davon ausgegangen wurde, dass es im Falle eines signifikanten Effektes hier eher zu einer Verminderung des Risikos käme. Theoretisch begründet wäre dies damit, dass eine Fortsetzung der Zusammenarbeit zweier bereits miteinander vertrauter Parteien unter bereits bekannten Umständen eher ein stabilisierender Faktor wäre. Diese Aussage trifft auch Saalfeld in seinen Interpretationen - in dessen best fit jedoch taucht diese Variable nicht mehr signifikant auf. Somit könnte von einem Faktor ausgegangen werden, der besonders im Kontext von Minderheitsregierungen eine Rolle für die Instabilität spielt. Möglicherweise könnte ein Erklärungsansatz sein, dass es bei Minderheitsregierungen, die ihre Arbeit nach einer Wahl unverändert fortsetzen können, nicht zu diesen "Bindungseffekten" zwischen Koalitionspartnern kommt, da Mehrheiten im Parlament immer aufs Neue gebildet werden müssten. Diese Erklärung wäre jedoch rein hypothetisch und bedarf innerhalb des Fachs in jedem Fall noch weitere Forschung.
+
+Als nächstes nun zu den **Faktoren, die die Stabilität von Minderheitsregierungen erhöhen** können. In der durchgeführten Analyse fallen in diese Kategorie die Variablen *parl_pref_range* zur Preference Range im jeweiligen Parlament, der Status als Kabinett nach einer regulären Wahl (*post_election_cabinet*) und *cab_seat_share*, also der prozentuale Sitzanteil des Kabinettes.
+Interpretiert werden können die hazard ratios wie folgt: für jeden Punkt Zunahme im Wert der Preference Range in einem Parlament sinkt das Risiko vorzeitigen Regierungsscheiterns um 1,5%. Weiterhin sinkt dieses Risiko um gerundet 65% für Kabinette, die nach einer regulären Wahl zustande kamen, gegenüber Kabinetten, die nicht auf diese Weise zustande kamen. Zuletzt sinkt das Risiko außerdem um gerundet 4% für jeden zusätzlichen Prozentpunkt an Sitzanteil im Parlament eines Kabinetts. Diese Ergebnisse verstehen sich ebenfalls wieder, wenn für alle Kovariaten im best fit-Modell kontrolliert wird.
+
+Im Falle der Preference Range eines Parlaments, die auch als ein Maß für die Komplexität des Verhandlungsumfeldes gesehen werden kann, ist der Effekt der Verminderung des Scheiterrisikos im Falle von Minderheitsregierungen eventuell zunächst verwunderlich - zumal diese Variable im thematisch spezifizieren Modell noch nicht signifikant war. Folgt man einer gängigen erklärung, dass stärker polarisierte und fraktionalisierte Verhandlungsumfelder das Regieren eigentlich komplizierter gestalten, da sich hier beispielsweise die Effekte von kritischen Events (wie Umfrageergebnissen) stärker auswirken können (nach Laver/Schofield 1990, S. 155-157).  In Saalfelds best fit-Modell bleibt diese Variable darüber hinaus auch insignifikant. Für Minderheitsregierungen scheint dies jedoch nicht der Fall zu sein. Eine alternative Erklärung dafür wurde bereits in den Ausführungen zum zweiten Modell angeschnitten: so wäre es denkbar, dass durch eine größere Preference Range in einem Parlament für Minderheitsregierungen mehr Handlungsoptionen entstehen, um sich bei Bedarf ihre notwendigen Mehrheiten zu suchen - ein Umstand, der diesen Faktor besonders für Minderheitsregierungen relevant macht, da in dieser Regierungsform angenommen werden kann, dass besser auf eine erhöhte Preference Range reagiert werden kann. In eine ähnliche Richtung argumentierten kürzlich auch Krauss und Thürk in ihrem aktuellen Artikel (vgl. Krauss/Thürk 2021, S. 3-4; S. 15), brachten dort auch derartige Regierungsformen als Alternativen in Ländern ins Gespräch, welche bisher nicht viele Erfahrungen damit sammeln konnten. Dennoch bedarf es auch hier noch mehr und vor allem tiefergehender Forschung.
+
+Ein weiterer das Risiko vermindernder Faktor, welcher sich als signifikant im best fit herausgestellt hat, ist der schon angesprochene Status als Kabinett nach einer regulären Wahl, gegenüber Kabinetten aus vorgezogenen Neuwahlen, Umbildungen oder auch Übergangsregierungen. Dass diese Kabinette allgemein eine längere Überlebensdauer aufweisen, wurde bereits bewiesen (vgl. Diermeier/Stevenson 1999, S. 1060-1064, King et al. 1990, S. 864f.). Doch auch im Fall von Minderheitsregierungen erweist sich diese Variable als stabilisierender Faktor, wie vorliegende Arbeit zeigen konnte: eben jener Effekt ist sowohl im spezifischen Institutionen-Modell, als auch im best fit signifikant. Für die Variable wäre es für weitere Forschung interessant, die Behauptung von Diermeier und Stevenson zu überprüfen, dass diese in Bezug auf vorgezogene Neuwahlen besondere Relevanz besitzt, was mit Hilfe eines competing risks-Forschungsdesigns möglich wäre.
+
+Abschließend liegt noch der Sitzanteil der jeweiligen Minderheitsregierung als risikovermindernder Faktor vor. Jedes zusätzliche Prozent an Sitzanteil für diese vermindert das Risiko vorzeitigen Regierungsscheiterns, wie angesprochen, um 1,5%. Die Variable erweist sich als für Minderheitsregierungen besonders relevant, taucht sie doch sowohl im best fit, als auch im ersten Modell zum Bereich "Struktur" signifikant und mit dem gleichen Einfluss auf. Dies ist, theoretisch verortet, auch auf einer Linie mit der Argumentation von Crombez, wonach eine Minderheitsregierung, je näher sie an der eigentlichen Mehrheit im Parlament angesiedelt ist, stärker und auch langlebiger ist. Zusätzlich spielt dabei noch die jeweilige größte Partei und deren Position im Parteiensystem eine Rolle (vgl. Crombez 1996, S. 11-13; S. 16f.).
+
+# Abschließendes Fazit der Untersuchung
+
++ Zukünftige Forschung sollte weiter in die Richtung forschen wie Krauss-Thürk 2021: Vereinbarungen über Zusammenarbeit können für Minderheitsregierungen besonders wichtig werden
+
++ Crombez 1996: Minderheitsregierung als Zeichen der Stärke der jeweiligen Partei, die das eingeht
+
++ Strøm: Argumentationsstränge "Minderheitsregierung ist letzter Ausweg" vs. "Minderheitsregierung ist wirkliche Alternative, die gewollt eingegangen wird"
+
+Die vorliegende Arbeit hatte es sich zum Ziel gesetzt, mittels explorativer Datenanalyse die Variablen herauszustellen, welche einen Einfluss auf das Scheiterrisiko von Minderheitsregierungen haben. Anhand der Analyse konnte herausgearbeitet werden, dass es sowohl wie theoretisch zu Beginn angenommen stabilisierenden, aber auch destabilisierende Faktoren für diesen Regierungstypus existieren.
+Die Ergebnisse sollen nun noch einmal in aller Kürze aufgeführt werden. Die Faktoren *Zwei-Kammern-System*, eine *größere Anzahl effektiver Parlamentsparteien*, *längere Dauer der Koalitionsverhandlungen* und ob der *gleiche Premierminister* dem Kabinett vorsteht wirken nach der durchgeführten Analyse für Minderheitsregierungen eher destabilisierend. Demgegenüber wirken eine *größere Preference Range*, der *Status als Kabinett nach einer regulären Wahl* und ein *größerer prozentualer Sitzanteil* im Parlament im Falle von Minderheitsregierungen als stabilisierende Faktoren.
+
+Ausgehend von diesen Ergebnissen kann sich nun die Frage gestellt werden: welche dieser Faktoren überwiegen nun? Lässt sich abschließend zudem eine Aussage treffen, ob Minderheitsregierungen, wie bisher in der Forschung oftmals vermutet, wirklich instabiler sind, als Regierungen, die eine Mehrheit im Parlament haben? Weiterhin ließe sich fragen, ob jene Minderheitsregierungen dann überhaupt erstrebenswerte Regierungsformen wären, wäre dies der Fall - und warum diese im Falle größerer Instabilität dann überhaupt noch immer circa 1/3 aller Regierungen ausmachen.
+
+In Richtung der Minderheitsregierungen als Ausdruck von Instabilität wurde in der Forschung zeitlich bereits weiter zurückliegend argumentiert (vgl. z. B. Blondel 1968, Sanders und Herman 1977). Doch auch in jüngerer Literatur ließen sich derartige Tendenzen bei der Interpretation dieser wiederfinden, so auch beispielsweise bei Thomas Saalfeld, dessen Modell diese Arbeit inspirierte (vgl. Saalfeld 2013 unter Rückgriff auf Riker 1962 und Robertson 1983). Dennoch schließt sich diese Arbeit in dieser Frage den Ausführungen von Kaare Strøm an: die Assoziation dieser Regierungsform mit Instabilität kommt teilweise aus historischer Perspektive, teilweise jedoch auch, wie Strøm anmerkt, aus den politisch eher turbulenten Systemen Südeuropas, welche ebenfalls mit Minderheitsregierungen assoziiert werden. Dass dem jedoch nicht so ist konnte Strøm in seiner damaligen Analyse zeigen. Ebenfalls stellt er sich dort gegen die Interpretation von Minderheitsregierungen als einen letzten Ausweg und spricht sich auf Basis seiner Daten eher für eine Deutung dieser als rationale Kabinettsentscheidungen aus (vgl. Strøm 1984, S. 222f.). Gerade auch aus aktueller Perspektive, also während der Covid-19-Pandemie, zeigen auch Minderheitsregierungen ihre Handlungsfähigkeit, wie von Krauss und Thürk zurecht im Falle Neuseelands anführen (vgl. Krauss/Thürk 2021, S. 1f.). Somit bezieht vorliegende Arbeit in dieser Frage ebenfalls die Stellung, dass Minderheitsregierungen handlungsfähig sein können und daher von den Akteuren nicht nur als letzter Ausweg gesehen werden.
+
+Als Ausblick für zukünftige Forschungen ist es selbstverständlich generell wünschenswert, dass Minderheitsregierungen als Forschungsobjekt auch weiterhin fester Bestandteil dieser bleiben. Positiv hervorgehoben werden soll hierbei die Arbeit von Krauss und Thürk 2021 zur Untersuchung der Stabilität von Minderheitsregierungen durch Unterstützungsabkommen. Hier wäre in zukünftiger Forschung auch eine Form des Mixed Methods-Ansatzes denkbar: so könnte in einem ersten Schritt analysiert werden, für welche Minderheitsregierungen, bei denen ein solches Abkommen vorliegt, die Arbeit besonders stabil funktionierte. In einem zweiten Schritt könnten dann, beispielsweise durch qualitative Textanalyse dieser Dokumente (sofern diese vorliegen), Faktoren herausgearbeitet werden, die für diese Zusammenarbeit besonders wichtig waren. Auch ein eher qualitatives Vorgehen mittels der Methode des Process Tracing wäre hier wohl denkbar: so könnte eine solche Zusammenarbeit und deren Ablauf von Zusammenschluss bis Regierungsende von Parteien in einer Koalitions-Minderheitsregierung bezüglich ihrer genauen Form näher analysiert werden. Somit könnte eventuell herausgearbeitet werden, welche Faktoren die Zusammenarbeit dort von jener in Mehrheitskabinetten unterscheiden. Diese Arbeit schließt mit eben jenen möglichen Pfaden für zukünftige Forschung.
 
 # Literaturverzeichnis
+
++ Grambsch, Patricia; Therneau, Terry (1994): *Proportional hazards tests and diagnostics based on weighted residuals*, Biometrika, 81, S. 515-526.
+
++ Saalfeld, Thomas (2008): *Institutions, Chance, and Choices: The Dynamics of Cabinet Survival*, in: Strøm, Kaare; Bergman, Torbjörn; Müller, Wolfgang (eds., 2008): *Cabinets and Coalition Bargaining: The Democratic Life Cycle in Western Europe*, Oxford, Oxford University Press, S. 327-368.
+
++ Strøm, Kaare (1984): *Minority Governments in Parliamentary Democracies. The Rationality of Nonwinning Cabinet Solutions*, Comparative Political Studies, Vol. 17, Iss. 2, S. 199-227.
+
++ Strøm, Kaare (1990): *Minority Government and Majority Rule*, Cambridge, Cambridge University Press.
+
++ Lupia, Arthur; Strøm, Kaare (1995): *Coalition Termination and the Strategic Timing of Parliamentary Elections*, American Journal of Political Science, Vol. 89, No. 3, S. 648-665.
+
++ Lupia, Arthur; Strøm, Kaare (2008): *Bargaining, Transaction Costs, and Coalition Governance*, in: Strøm, Kaare; Müller, Wolfgang; Bergman, Torbjörn (2008): *Cabinets and Coalition Bargaining: The Democratic Life Cycle in Western Europe*, Oxford, Oxford University Press, S. 51-85.
+
++ Diermeier, Dennis; Stevenson, Randolph (1999): *Cabinet Survival and Competing Risks*, American Journal of Political Science, Vol. 43, No. 4, S. 1051-1068.
+
++ Warwick, Paul; Easton, Stephen (1992): *The Cabinet Stability Controversy: New Perspectives on a Classic Problem*, American Journal of Political Science, Vol. 36, No. 1, S. 122-146.
+
++ Warwick, Paul (1994): *Government Survival in Parliamentary Democracies*, Cambridge University Press, Cambridge. 
+
++ Grofman, Bernard; van Roozendal, Peter (1997): *Review Article: Modelling Cabinet Durability and Termination*, British Journal of Political Science, Vol. 27, No. 3, S. 419-451.
+
++ Smith, Alastair (2004): *Election Timing*, Cambridge University Press, Cambridge.
+
++ Tsebelis, George (2002). *Veto Players: How Political !nstitutions Work*, New York, NY:
+Russell Sage Foundation and Princeton, NJ: Princeton University Press.
+
++ Krauss (2018) *Stability through control? The influence of coalition agreements on the stability of coalition cabinets*, West European Politics, Vol. 41, Iss. 6, S. 1282-1304.
+
++ Krauss/Thürk (2021): *Stability of minority governments and the role of support agreements*, West European Politics, online veröffentlicht: 09.03.2021, verfügbar unter: https://doi.org/10.1080/01402382.2021.1890455 (Stand: 20. März 2021).
+
++ Krauss/Kroeber (2020): *How women in the executive influence government stability*, Journal of European Public Policy, online veröffentlicht: 12.06.2020, verfügbar unter: https://doi.org/10.1080/13501763.2020.1773905 (Stand: 20. März 2021).
+
++ Browne, Eric; Frendreis, John; Gleiber, Dennis (1984): *An "Events" Approach to the Problem of Cabinet Stability*, Comparative Political Studies, Vol. 17, 167-197.
+
++ Schleiter, Petra; Morgan-Jones, Edward (2009): *Constitutional Power and Competing Risks: Monarchs, Presidents, Prime Ministers, and the Termination of East and West European Cabinets*, American Political Science Review, Vol. 103, No. 3, S. 496-512.
+
++ Bergman, Torbjörn; Ersson, Svante; Hellström, Johan (2015): *Government formation and breakdown in Western and Central Eastern Europe*, Comparative European Politics, Vol. 13, S. 345-375.
+
++ Walther, Daniel; Hellström, Johan (2021): *Government termination in Europe: a sensitivity analysis*, West European Politics, online veröffentlicht: 11.02.2021, verfügbar unter: https://doi.org/10.1080/01402382.2021.1880720 (Stand: 20.03.2021).
+
++ Vowles, Jack (2010): *Making a difference? Public perceptions of coalitions, single-party, and minority governments*, Electoral Studies, Vol. 29, S. 370-380.
+
++ Laakso, Markku; Taagepera, Rein (1979): *Effective Number of Parties: A Measurement with Application to West Europe*, Comparative Political Studies, Vol. 12, S. 3-27.
+
++ Crombez, Christophe (1996): *Minority governments, minimal winning coalitions and surplus majorities in parliamentary systems*, European Journal of Political Research, Vol. 29, S. 1-29.
+
++ Druckman, James; Thies, Michael (2002): *The Importance of Concurrence: The Impact of Bicameralism on Government Formation and Duration*, American Journal of Political Science, Vol. 46, Iss. 4, S. 760-771.
+
++ Blondel, Jean (1968): *Party Systems and Patterns of Government in Western Democracies*, Canadian Journal of Political Science, Vol. 1, Iss. 2, S. 180-203.
+
++ Saalfeld, Thomas (2013): *Economic Performance, Political Institutions and Cabinet Durability in 28 European Parliamentary Democracies, 1945-2011*, in: Narud, Hanne; Müller, Wolfgang (2013): *Party Governance and Party Democracy*, Springer Science+Business Media, New York 2013.
+
++ Riker, William (1962): *The theory of political coalitions*, Yale University Press, New Haven.
+
++ Robertson, John (1983): *The Political Economy and the Durability of European Coalition Cabinets: New Variations on a Game-Theoretic Perspective*, Journal of Politics, Vol. 45, Iss. 4, S. 932-957.
+
+# Abbildungsverzeichnis
+
+#### Länder mit Minderheitsregierungen im Datensatz
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+freq(BergmannERDDA.f$country)
+```
+
+#### Anteil von Minderheitsregierungen in den Daten
+```{r Anteil Minderheitsregierungen, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+freq(BergmannERDDA$v329e)
+```
+
+
+
+
+#### baseline plot
+```{r baseline survival function, echo=F, message=FALSE, warning=FALSE, paged.print=FALSE}
+plot(survfit(Surv(time = BergmannERDDA.f$abs_dur, 
+                  event = BergmannERDDA.f$discr2019, type = "right")~1))
+```
+
+#### heatmap I: structure
+```{r heatmap I: structure, echo=F, message=FALSE, warning=FALSE, paged.print=FALSE}
+corStructure <- round(cor(na.omit(sbStructure)), 2)
+
+corrplot(corStructure, type = "upper", method = "number", order = "hclust")
+# d3heatmap::d3heatmap(corStructure, Rowv = FALSE, Colv=FALSE)
+```
+
+#### heatmap II: preferences
+```{r heatmap II: preferences, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+# corrmatrix
+corPreferences <- round(cor(na.omit(sbPreferences)), 2)
+
+# heatmap
+corrplot(corPreferences, type = "upper", method = "number", order = "hclust")
+# d3heatmap::d3heatmap(corPreferences, Rowv = FALSE, Colv=FALSE)
+```
+
+#### heatmap III: institutions
+```{r heatmap III: institutions, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+corInstit <- round(cor(na.omit(sbInstit)), 2)
+
+# heatmaps
+corrplot(corInstit, type = "upper", method = "number", order = "hclust")
+# d3heatmap::d3heatmap(corInstit, Rowv = FALSE, Colv = FALSE)
+# exclude no var, no high correlations
+```
+
+#### heatmap IV: bargaining
+
+```{r heatmap IV: bargaining, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+corBarg <- round(cor(na.omit(sbBarg)), 2)
+
+corrplot(corBarg, type = "upper", method = "number", order = "hclust")
+# d3heatmap::d3heatmap(corBarg, Rowv = FALSE, Colv=FALSE)
+# exclude no var, no high correlations
+```
+
+
+#### heatmap V: critical events
+
+```{r heatmap V: crit. events, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+corCrit.Abs <- round(cor(na.omit(sbCrit.Abs)), 2)
+
+# heatmaps
+corrplot(corCrit.Abs, type = "upper", method = "number", order = "hclust")
+# d3heatmap::d3heatmap(corCrit.Abs, Rowv = FALSE, Colv=FALSE)
+```
+
+#### heatmap VI: best fit
+```{r heatmap VI: best fit, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+corAll <- round(cor(na.omit(sbAll)), 2)
+
+corrplot(corAll, type = "upper", method = "circle", order = "hclust")
+```
+
+
+
+
+
+#### survival plot: estimated by best fit
+```{r survival probability estimated: best.fit, echo=F, message=FALSE, warning=FALSE, paged.print=FALSE}
+ggsurvplot(data = sbAll, survfit(best.fit),
+           ggtheme = theme_minimal()) + 
+  ggtitle(label = "Überlebenswahrscheinlichkeitvon Regierungen",
+          subtitle = "geschätzt durch Modell des best fit")
+```
+
+```{r coxph diagnostics graphics, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+ggcoxdiagnostics(best.fit, type = "schoenfeld", linear.predictions = F, ggtheme = theme_bw())
+ggcoxfunctional(best.fit)
+```
+
 
 
 # Eigenständigkeitserklärung
@@ -71,23 +686,5 @@ Bamberg, den XX.YY.ZZZZ
 
 
 Unterschrift Florian Wisniewski
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 

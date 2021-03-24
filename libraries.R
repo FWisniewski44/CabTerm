@@ -21,6 +21,9 @@ library(rockchalk)
 library(effects)
 library(modeldata)
 library(randomForest)
+library(compare)
+library(psych)
+library(desc)
 
 ########################################### import relevant dfs
 # import dta bergmann df
@@ -111,13 +114,6 @@ fre(post_election_cabinet)
 ## at the end of respective national legislative periods
 ## codes as 1 == yes; 0 == no
 
-# filter df for minority coalitions (one_party_minor | minor_coalition), post election cab
-filterBerg <- filter(dtaBerg, post_election_cabinet == 1 & minor_coalition == 1 | one_party_minor == 1)
-View(filterBerg)
-save(filterBerg, file = "filterBergmann.RData")
-## the df is filtered for post election cabinets == T AND minority coalition governments OR
-## one party minority governments == T
-
 
 # new Surv-item with filterBerg
 Surv(filterBerg$abs_dur, event = filterBerg$discr2019)
@@ -126,7 +122,7 @@ Surv(filterBerg$abs_dur, event = filterBerg$discr2019)
 # fit test model for this df
 testModel <- coxph(data = filterBerg, Surv(filterBerg$abs_dur, event = filterBerg$discr2019) ~ filterBerg$eff_numb_parties + filterBerg$cab_barg_duration)
 summary(testModel)
-## coef here is showing hazard RATIOS
+## coef == b coefficients; exp(coef) here is showing hazard RATIOS
 
 # test: proportional hazards assumption met?
 cox.zph(testModel)
@@ -217,10 +213,10 @@ ggcoxzph(cox.zph(testModel))
 
 ## building a subset with said vars
 detach(dtaBerg)
-attach(filterBerg)
-subset(data = filterBerg, select = c(discr2019, abs_dur, one_party_minor, minor_coalition, 
-                                     post_election_cabinet, eff_numb_parties, cab_barg_duration,
-                                     pm_diss_pow, polarization_bpw, rl_range))
+# attach(filterBerg)
+# subset(data = filterBerg, select = c(discr2019, abs_dur, one_party_minor, minor_coalition, 
+#                                      post_election_cabinet, eff_numb_parties, cab_barg_duration,
+#                                      pm_diss_pow, polarization_bpw, rl_range))
 
 
 ###########################################  merge dfs for some reasons?
@@ -286,6 +282,109 @@ fre(erdda$v003e)
 fre(erdda$v700e)
 
 describe(BergErdda$v407e)
+
+########## test: are results equal in R vs. in Stata?
+
+# test for same model as in Hennings dofile
+compMod <- coxph(data = dtaBerg, firstSurv ~ major_cabinet + num_cabparties + cab_barg_duration + 
+        eff_numb_parties + rl_log_range + positive_parl + semi_presidentialism)
+summary(compMod)
+# yes
+dtaBerg$post
+
+######################## filter joined df
+
+# filter df for minority coalitions (one_party_minor | minor_coalition), post election cab
+### filterBerg <- filter(BergErdda, BergErdda$post_election_cabinet == 1 & BergErdda$minor_coalition == 1 | BergErdda$one_party_minor == 1)
+# testfilter1 <- BergErdda
+# testfilter1 <- testfilter1[testfilter1$post_election_cabinet == 1,]
+# testfilter1 <- testfilter1[testfilter1$minor_coalition == 1,]
+# testfilter1 <- testfilter1[testfilter1$one_party_minor == 1,]
+# 
+# fre(testfilter1$discr2019)
+# fre(BergErdda$discr2019)
+# 
+# fre(testfilter1$post_election_cabinet)
+# fre(testfilter2$post_election_cabinet)
+# head(testfilter1)
+
+# filter tests for erdda and bergmann dfs
+erddaFilterMinor <- filter(erdda, erdda$v325e == 1 | erdda$v324e == 1 & erdda$v303e == 1)
+BergErdda <- filter(dtaBerg, dtaBerg$minor_coalition == 1 | dtaBerg$one_party_minor == 1 & dtaBerg$post_election_cabinet == 1)
+
+fre(erdda$post_election_cabinet)
+# erdda <- rename(erdda, "post_election_cabinet"="v303e")
+fre(dtaBerg$post_election_cabinet)
+fre(BergErdda$post_election_cabinet)
+
+# View(filterBerg)
+head(filterBerg)
+
+fre(filterBerg$post_election_cabinet)
+
+
+save(filterBerg, file = "filterBergmann.RData")
+## the df is filtered for post election cabinets == T AND minority coalition governments OR
+## one party minority governments == T
+
+################################## trial and error: mutating vars for inflation etc
+
+help(mutate)
+
+# rename relevant vars
+BergmannERDDA <- BergmannERDDA %>% rename("inflation_begin" = "v702e", 
+                                          "inflation_end" = "v706e")
+
+BergmannERDDA <- BergmannERDDA %>% rename("unemploy_begin" = "v703e",
+                                          "unemploy_end" = "v705e")
+
+BergmannERDDA <- BergmannERDDA %>% rename("growth_begin" = "v704e",
+                                          "growth_end" = "v707e")
+
+
+# mutate: we want precentage difference. calculate abs. diff. first
+
+# INFLATION: ABSOLUTE DIFF.
+BergmannERDDA <- BergmannERDDA %>%
+  mutate(inflation_Abs = (inflation_end - inflation_begin))
+
+fre(BergmannERDDA$inflation_Abs)
+
+# INFLATION: % DIFF.
+BergmannERDDA <- BergmannERDDA %>%
+  mutate(inflation_percChange = (inflation_Abs / inflation_begin)*100)
+
+fre(BergmannERDDA$inflation_percChange)
+
+#####
+
+# UNEMPLOYMENT: ABSOLUTE DIFF.
+BergmannERDDA <- BergmannERDDA %>%
+  mutate(unemploy_Abs = (unemploy_end - unemploy_begin))
+
+fre(BergmannERDDA$unemploy_Abs)
+
+# UNEMPLOYMENT: % DIFF.
+BergmannERDDA <- BergmannERDDA %>%
+  mutate(unemploy_percChange = (unemploy_Abs / unemploy_begin)*100)
+
+fre(BergmannERDDA$unemploy_percChange)
+
+#####
+
+# GROWTH: ABSOLUTE DIFF.
+BergmannERDDA <- BergmannERDDA %>%
+  mutate(growth_Abs = (growth_end - growth_begin))
+
+fre(BergmannERDDA$growth_Abs)
+
+# GROWTH: % DIFF.
+BergmannERDDA <- BergmannERDDA %>%
+  mutate(growth_percChange = (growth_Abs / growth_begin)*100)
+
+fre(BergmannERDDA$growth_percChange)
+
+
 
 
 
