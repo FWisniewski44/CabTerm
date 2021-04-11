@@ -4,12 +4,10 @@ author: "Florian Wisniewski"
 date: "`r Sys.Date()`"
 output:
   word_document:
-    toc: yes
-  pdf_document:
-    toc: yes
-    number_sections: yes
-documentclass: article
-always_allow_html: yes
+    reference_docx: "/Users/flo/Documents/Uni/template-Rmd.docx"
+    toc: TRUE
+    number_sections: TRUE
+always_allow_html: TRUE
 ---
 
 ```{r setup, include=FALSE}
@@ -54,6 +52,8 @@ library(kableExtra)
 library(gtools)
 library(gmodels)
 library(summarytools)
+library(flextable)
+library(huxtable)
 
 ###########################################
 
@@ -476,7 +476,7 @@ Nun zur Interpretation des errechneten Modells des best fit, welches das abschli
 + Wie groß ist der Sitzanteil des Kabinettes? (*cab_seat_share*)
 
 ```{r tidy table for best fit && survival plot for estimated model, echo=F}
-tidyBestFit <- tidy(best.fit, exponentiate = T, conf.level = 0.95) %>% 
+tidyBestFit <- (tidy(best.fit, exponentiate = T, conf.level = 0.95)) %>% 
   mutate(signif = stars.pval(p.value))
 
 kbl(tidyBestFit) %>% 
@@ -582,12 +582,15 @@ Russell Sage Foundation and Princeton, NJ: Princeton University Press.
 #### Länder mit Minderheitsregierungen im Datensatz
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
-freq(BergmannERDDA.f$country)
+ht1 <- huxtable(freq(BergmannERDDA.f$country), autoformat = T, add_rownames = T)
+add_colnames(ht1)
+
 ```
 
 #### Anteil von Minderheitsregierungen in den Daten
 ```{r Anteil Minderheitsregierungen, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
-freq(BergmannERDDA$v329e)
+add_colnames(huxtable(freq(BergmannERDDA$v329e), add_rownames = T, autoformat = T))
+
 ```
 
 
@@ -663,7 +666,7 @@ corrplot(corAll, type = "upper", method = "circle", order = "hclust")
 ```{r survival probability estimated: best.fit, echo=F, message=FALSE, warning=FALSE, paged.print=FALSE}
 ggsurvplot(data = sbAll, survfit(best.fit),
            ggtheme = theme_minimal()) + 
-  ggtitle(label = "Überlebenswahrscheinlichkeitvon Regierungen",
+  ggtitle(label = "Überlebenswahrscheinlichkeit von Regierungen",
           subtitle = "geschätzt durch Modell des best fit")
 ```
 
