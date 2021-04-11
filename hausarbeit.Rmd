@@ -584,7 +584,6 @@ Russell Sage Foundation and Princeton, NJ: Princeton University Press.
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 ht1 <- huxtable(freq(BergmannERDDA.f$country), autoformat = T, add_rownames = T)
 add_colnames(ht1)
-
 ```
 
 #### Anteil von Minderheitsregierungen in den Daten
@@ -664,13 +663,16 @@ corrplot(corAll, type = "upper", method = "circle", order = "hclust")
 
 #### survival plot: estimated by best fit
 ```{r survival probability estimated: best.fit, echo=F, message=FALSE, warning=FALSE, paged.print=FALSE}
-ggsurvplot(data = sbAll, survfit(best.fit),
-           ggtheme = theme_minimal()) + 
+ggsurvplot(data = sbAll, survfit(best.fit), conf.int = F, linetype = "solid", 
+           risk.table = "abs_pct", 
+           surv.median.line = "hv",
+           tables.theme = theme_minimal(),
+           ggtheme = theme_linedraw()) + 
   ggtitle(label = "Überlebenswahrscheinlichkeit von Regierungen",
           subtitle = "geschätzt durch Modell des best fit")
 ```
 
-```{r coxph diagnostics graphics, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+```{r coxph diagnostics graphics, eval=FALSE, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
 ggcoxdiagnostics(best.fit, type = "schoenfeld", linear.predictions = F, ggtheme = theme_bw())
 ggcoxfunctional(best.fit)
 ```
