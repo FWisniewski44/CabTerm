@@ -48,15 +48,12 @@ kable(freq(BergmannERDDA.f$country), )
 
 huxtable(freq(BergmannERDDA.f$country), add_rownames = T, add_colnames = TRUE)
 
-tribble
-
 # table for best fit
 tidyBestFit <- (tidy(best.fit, exponentiate = T, conf.level = 0.95)) %>% 
   mutate(signif = stars.pval(p.value))
 
 kbl(tidyBestFit) %>% 
   kable_classic()
-
 
 # estimated survival by best fitting model
 
